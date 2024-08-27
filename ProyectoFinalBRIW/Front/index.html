@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+  <link rel="stylesheet" type="text/css" href="../Front/index.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
+  <script src="../Back/executecrawler.js"></script>
+  <script src="../Front/search.js"></script>
+  <title>Proyecto Final BRIW</title>
+</head>
+
+<body>
+  <div class="App">
+    <header class="App-header">
+      <div class="form-container">
+        <div class="input-with-dropdown-container">
+          <input type="text" id="queryInput" placeholder="Ingresa tu consulta" />
+          <div class="dropdown hidden" id="suggestionsContainer"></div> <!-- Contenedor para las sugerencias -->
+        </div>
+        <button id="executeButton">Ejecutar Consulta</button>
+        <button id="executeCrawler">Ejecutar Crawler</button>
+        <button id="executePDF">Subir PDF</button>
+        <div id="correctionContainer"></div> <!-- Contenedor para las correciones -->
+        <div id="relatedWords">
+          <!-- Aquí se mostrarán las palabras que se están buscando -->
+        </div>
+        <div class="faceted-results">
+          <h2>Resultados de Búsqueda Facetada</h2>
+          <div id="facetResults">
+            <!-- Aquí se mostrarán los resultados de la búsqueda facetada -->
+          </div>
+        </div>
+        <div class="results" id="searchResults">
+          <!-- Aquí se mostrarán los resultados -->
+        </div>
+      </div>
+        <p id="errorMessage" class="error-message hidden">
+          La consulta no puede ser vacía
+        </p>
+    </header>
+  </div>
+  <script>
+    document.getElementById('executePDF').addEventListener('click', function() {
+      // Redireccionar al archivo subirpdf.php
+      window.location.href = '../Back/subirpdf.php';
+    });
+  </script>
+</body>
+
+</html>

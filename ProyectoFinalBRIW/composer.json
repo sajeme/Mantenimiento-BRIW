@@ -1,0 +1,13 @@
+{
+  "require": {
+    "solarium/solarium": "^6.3",
+    "league/event": "^3.0",
+    "guzzlehttp/guzzle": "^7.8",
+    "icanboogie/inflector": "^2.2",
+    "smalot/pdfparser": "^2.7",
+    "voku/stop-words": "^2.0",
+    "html2text/html2text": "^4.3",
+    "landrok/language-detector": "^1.3"
+    
+  }
+}
