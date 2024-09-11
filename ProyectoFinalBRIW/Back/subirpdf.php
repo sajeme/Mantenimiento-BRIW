@@ -1,20 +1,158 @@
 <!DOCTYPE html>
-<html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subir PDF</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #282c34;
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .btn-custom {
+            color: white;
+            background-color: transparent;
+            border: 1px solid #ffffff;
+        }
+        .file-dropzone {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 150px;
+            width: 400px;
+            border: 2px dashed white;
+            border-radius: 5px;
+            cursor: pointer;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .file-dropzone input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-dropzone .file-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .file-dropzone .file-info i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        .file-dropzone .file-info span {
+            word-break: break-all;
+        }
+        .file-dropzone:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+    </style>
+</head>
 <body>
-<a href="../Front/index.html">Atras</a>
-<form action="subirPDF.php" method="post" enctype="multipart/form-data">
- <h2> Subir PDF</h2> <br>
-  <input type="file" name="archivos[]" accept="file/txt" multiple>
-  <br>
-  <br>
-  <input type="submit" value="Subir archivos" name="subir">
-</form>
+
+    <!-- Botón de regreso -->
+    <a href="../Front/index.html" class="btn btn-custom position-absolute top-0 start-0 m-3">
+        <i class="bi bi-arrow-left"></i> Atrás
+    </a>
+
+    <!-- Título -->
+    <h2 class="text-center fw-bold" style="font-family: Arial;">Subir PDF</h2>
+
+    <!-- Formulario -->
+    <form id="upload-form" action="subirPDF.php" method="post" enctype="multipart/form-data" class="text-center mt-4">
+
+        <!-- Contenedor de arrastre de archivos -->
+        <div class="file-dropzone" id="file-dropzone">
+            <div class="file-info">
+                <i class="bi bi-file-earmark-pdf"></i>
+                <span>Arrastre su archivo aquí o haga clic para seleccionar</span>
+            </div>
+            <input type="file" id="file-upload" name="archivos[]" accept="application/pdf" multiple>
+        </div>
+
+        <!-- Botón de subir archivos -->
+        <input type="submit" value="Subir archivos" name="subir" class="btn btn-custom mt-2">
+    </form>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Mostrar nombre de archivo seleccionado -->
+    <script>
+        const fileUpload = document.getElementById('file-upload');
+        const fileInfo = document.querySelector('.file-info span');
+        const fileIcon = document.querySelector('.file-info i');
+
+        fileUpload.addEventListener('change', function() {
+            const files = Array.from(fileUpload.files).map(file => file.name).join(', ');
+            fileIcon.classList.replace('bi-file-earmark-pdf', 'bi-file-earmark-check');
+            fileInfo.innerHTML = `<i class="bi bi-file-earmark-pdf"></i> ${files}`;
+        });
+
+        // Manejadores para arrastrar y soltar archivos
+        document.querySelector('.file-dropzone').addEventListener('dragover', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            event.target.classList.add('dragging');
+        });
+
+        document.querySelector('.file-dropzone').addEventListener('dragleave', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            event.target.classList.remove('dragging');
+        });
+
+        document.querySelector('.file-dropzone').addEventListener('drop', (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            fileUpload.files = event.dataTransfer.files;
+            const files = Array.from(fileUpload.files).map(file => file.name).join(', ');
+            fileIcon.classList.replace('bi-file-earmark-pdf', 'bi-file-earmark-check');
+            fileInfo.innerHTML = `<i class="bi bi-file-earmark-pdf"></i> ${files}`;
+        });
+
+        // Manejo del envío del formulario
+        document.getElementById('upload-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Evita el envío estándar del formulario
+            
+            const formData = new FormData(this);
+
+            fetch('subirPDF.php', {
+                method: 'POST',
+                body: formData
+            }).then(response => {
+                if (response.ok) {
+                    alert('Archivos correctamente indexados');
+                    window.location.href = '../Front/index.html';
+                } else {
+                    alert('Error al indexar los archivos. Intente nuevamente.');
+                }
+            }).catch(error => {
+                alert('Error al indexar los archivos. Intente nuevamente.');
+            });
+        });
+    </script>
+
 
 <?php 
 if(!(isset($_FILES["archivos"]) && !empty($_FILES["archivos"]["name"][0]))){
-   return;
+    return;
 }
-
 //Quitar cuando se termine
 /*
 echo '<pre>';
@@ -26,6 +164,7 @@ echo "</pre>";
 ?>
 </body>
 </html>
+
 
 <?php
 require '../vendor/autoload.php';
