@@ -67,14 +67,29 @@
      .text {
         color: #007bff;
     }
+
+    .alert-custom {
+    background-color: #007bff; 
+    color: white; 
+    border-color: #007bff; 
+    }
   </style>
 </head>
 
 <body>
+
+
     <div class="App container my-5 ms-n3">
         <header class="App-header">
             <div class="form-container custom-container">
                 <div class="row mb-3">
+                    <div id="crawlerAlert" class="alert alert-custom alert-dismissible fade hidden" role="alert">
+                        <strong>¡Crawler en ejecución!</strong> El proceso ha comenzado correctamente.
+                        <button type="button" class="close position-absolute top-0 end-0 me-2 mt-2" data-bs-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <p id="errorMessage" class="alert alert-danger hidden">La consulta no puede ser vacía</p>
                     <div class="col-md-8">
                         <div class="input-group">
                             <input type="text" id="queryInput" class="form-control custom-input" placeholder="Ingresa tu consulta" />
@@ -114,7 +129,15 @@
       // Redireccionar al archivo subirpdf.php
       window.location.href = '../Back/subirpdf.php';
     });
+
+    document.getElementById('executeCrawler').addEventListener('click', function() {
+      var alertElement = document.getElementById('crawlerAlert');
+      alertElement.classList.remove('hidden', 'fade');
+      alertElement.classList.add('show');
+    });
+
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>

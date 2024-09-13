@@ -86,7 +86,7 @@
         </div>
 
         <!-- Botón de subir archivos -->
-        <input type="submit" value="Subir archivos" name="subir" class="btn btn-custom mt-2">
+        <input type="submit" value="Subir archivos" name="subir" class="btn btn-custom mt-2" id="submit-btn" disabled>
     </form>
 
     <!-- Bootstrap JS -->
@@ -97,6 +97,12 @@
         const fileUpload = document.getElementById('file-upload');
         const fileInfo = document.querySelector('.file-info span');
         const fileIcon = document.querySelector('.file-info i');
+
+
+        const fileInput = document.getElementById('file-upload');
+        const submitButton = document.getElementById('submit-btn');
+
+
 
         fileUpload.addEventListener('change', function() {
             const files = Array.from(fileUpload.files).map(file => file.name).join(', ');
@@ -145,6 +151,22 @@
             }).catch(error => {
                 alert('Error al indexar los archivos. Intente nuevamente.');
             });
+        });
+
+        fileInput.addEventListener('change', function() {
+            // Si el archivo seleccionado es un PDF, habilita el botón
+            if (fileInput.files.length > 0) {
+                let isPdf = true;
+                for (let i = 0; i < fileInput.files.length; i++) {
+                    if (fileInput.files[i].type !== 'application/pdf') {
+                        isPdf = false;
+                        break;
+                    }
+                }
+                submitButton.disabled = !isPdf;
+            } else {
+                submitButton.disabled = true; // Si no hay archivos, deshabilita el botón
+            }
         });
     </script>
 
