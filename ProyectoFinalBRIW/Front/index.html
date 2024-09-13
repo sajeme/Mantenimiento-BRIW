@@ -5,50 +5,139 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="../Front/index.css">
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js"></script>
   <script src="../Back/executecrawler.js"></script>
   <script src="../Front/search.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <title>Proyecto Final BRIW</title>
+  <style>
+    #correctionContainer, #relatedWords {
+        height: 50px; /* Alto específico */
+        overflow-y: auto; /* Si el contenido es mayor, se podrá desplazar verticalmente */
+        overflow-x: hidden; /* Evita el desplazamiento horizontal */
+        padding: 5px; /* Espaciado interno */
+        box-sizing: border-box; /* Asegura que padding y border no aumenten el tamaño total */
+    }
+
+    .faceted-results {
+        margin-bottom: 20px; /* Separación con el siguiente elemento */
+    }
+
+    /* Estilo para el contenedor de sugerencias */
+    .dropdown {
+        padding: 10px; /* Espaciado interno */
+        border-radius: 4px; /* Bordes redondeados */
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra para mejor visibilidad */
+        position: absolute; /* Posicionamiento absoluto para que se pueda posicionar sobre otros elementos */
+        width: calc(100% - 1px); /* Asegura que el contenedor tenga el mismo ancho que el input menos el borde */
+        z-index: 1000; /* Asegura que el contenedor se muestre sobre otros elementos */
+        max-height: 300px; /* Altura máxima para el contenedor */
+    }
+
+    .dropdown.visible {
+        display: block; /* Mostrar cuando haya sugerencias */
+    }
+
+    .dropdown-item {
+        background-color: #007bff; /* Color de fondo de los botones */
+        color: white; /* Color del texto */
+        border: none; /* Sin borde */
+        padding: 10px; /* Espaciado interno */
+        width: 100%; /* Asegura que el botón ocupe todo el ancho del contenedor */
+        text-align: left; /* Alinea el texto a la izquierda */
+        cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+    }
+
+    .dropdown-item:hover {
+        background-color: #0056b3; /* Color de fondo al pasar el cursor sobre un botón */
+    }
+
+    /* Estilo para los resultados de búsqueda */
+    .search-result {
+        background-color: #30333b;
+        border-radius: 0.25rem; /* Bordes redondeados */
+        margin-bottom: 10px; /* Espaciado en la parte inferior */
+        padding: 1rem; /* Espaciado interno */
+        color: #ffffff; /* Color del texto para que sea visible sobre el fondo oscuro */
+    }
+
+     .text {
+        color: #007bff;
+    }
+
+    .alert-custom {
+    background-color: #007bff; 
+    color: white; 
+    border-color: #007bff; 
+    }
+  </style>
 </head>
 
 <body>
-  <div class="App">
-    <header class="App-header">
-      <div class="form-container">
-        <div class="input-with-dropdown-container">
-          <input type="text" id="queryInput" placeholder="Ingresa tu consulta" />
-          <div class="dropdown hidden" id="suggestionsContainer"></div> <!-- Contenedor para las sugerencias -->
-        </div>
-        <button id="executeButton">Ejecutar Consulta</button>
-        <button id="executeCrawler">Ejecutar Crawler</button>
-        <button id="executePDF">Subir PDF</button>
-        <div id="correctionContainer"></div> <!-- Contenedor para las correciones -->
-        <div id="relatedWords">
-          <!-- Aquí se mostrarán las palabras que se están buscando -->
-        </div>
-        <div class="faceted-results">
-          <h2>Resultados de Búsqueda Facetada</h2>
-          <div id="facetResults">
-            <!-- Aquí se mostrarán los resultados de la búsqueda facetada -->
-          </div>
-        </div>
-        <div class="results" id="searchResults">
-          <!-- Aquí se mostrarán los resultados -->
-        </div>
-      </div>
-        <p id="errorMessage" class="error-message hidden">
-          La consulta no puede ser vacía
-        </p>
-    </header>
-  </div>
+
+
+    <div class="App container my-5 ms-n3">
+        <header class="App-header">
+            <div class="form-container custom-container">
+                <div class="row mb-3">
+                    <div id="crawlerAlert" class="alert alert-custom alert-dismissible fade hidden" role="alert">
+                        <strong>¡Crawler en ejecución!</strong> El proceso ha comenzado correctamente.
+                        <button type="button" class="close position-absolute top-0 end-0 me-2 mt-2" data-bs-dismiss="alert" aria-label="Close">
+                          <span aria-hidden="true">&times;</span>
+                        </button>
+                      </div>
+                      <p id="errorMessage" class="alert alert-danger hidden">La consulta no puede ser vacía</p>
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" id="queryInput" class="form-control custom-input" placeholder="Ingresa tu consulta" />
+                            <div class="dropdown hidden"  id="suggestionsContainer"></div>
+                            <button class="btn btn-primary" id="executeButton">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <button class="btn btn-secondary me-2" id="executeCrawler">Ejecutar Crawler</button>
+                        <button class="btn btn-secondary" id="executePDF">Subir PDF</button>
+                    </div>
+                </div>
+    
+                <div id="correctionContainer"></div>
+                <div id="relatedWords"></div>
+    
+                <div class="faceted-results mb-4">
+                    <h2 class="h4">Resultados de Búsqueda Facetada</h2>
+                    <div id="facetResults" class="border rounded p-3">
+                        <!-- Resultados de búsqueda facetada -->
+                    </div>
+                </div>
+    
+                <div class="results mb-3" id="searchResults">
+                    <!-- Resultados de búsqueda normales -->
+                </div>
+            </div>
+    
+            <p id="errorMessage" class="alert alert-danger hidden">La consulta no puede ser vacía</p>
+        </header>
+    </div>    
+
   <script>
     document.getElementById('executePDF').addEventListener('click', function() {
       // Redireccionar al archivo subirpdf.php
       window.location.href = '../Back/subirpdf.php';
     });
+
+    document.getElementById('executeCrawler').addEventListener('click', function() {
+      var alertElement = document.getElementById('crawlerAlert');
+      alertElement.classList.remove('hidden', 'fade');
+      alertElement.classList.add('show');
+    });
+
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 
 </html>
