@@ -61,6 +61,12 @@
         .file-dropzone:hover {
             background-color: rgba(255, 255, 255, 0.1);
         }
+        #alertModal .modal-content {
+            min-width: 300px;
+            min-height: 150px;
+            background-color: #282c34;
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -97,39 +103,36 @@
         const fileUpload = document.getElementById('file-upload');
         const fileInfo = document.querySelector('.file-info span');
         const fileIcon = document.querySelector('.file-info i');
-
-
-        const fileInput = document.getElementById('file-upload');
         const submitButton = document.getElementById('submit-btn');
 
-
-
+        // Validar que el archivo sea PDF y su tamaño no exceda 5MB
         fileUpload.addEventListener('change', function() {
-            const files = Array.from(fileUpload.files).map(file => file.name).join(', ');
-            fileIcon.classList.replace('bi-file-earmark-pdf', 'bi-file-earmark-check');
-            fileInfo.innerHTML = `<i class="bi bi-file-earmark-pdf"></i> ${files}`;
-        });
+            let isPdf = true;
+            let isValidSize = true;
 
-        // Manejadores para arrastrar y soltar archivos
-        document.querySelector('.file-dropzone').addEventListener('dragover', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.target.classList.add('dragging');
-        });
+            for (let i = 0; i < fileUpload.files.length; i++) {
+                const file = fileUpload.files[i];
+                if (file.type !== 'application/pdf') {
+                    isPdf = false;
+                    showModal('Error', 'Uno o más archivos no son PDF.');
+                    break;
+                }
+                if (file.size > 5 * 1024 * 1024) { // 5 MB
+                    isValidSize = false;
+                    showModal('Error', 'Uno o más archivos superan el tamaño permitido de 5 MB.');
+                    break;
+                }
+            }
 
-        document.querySelector('.file-dropzone').addEventListener('dragleave', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            event.target.classList.remove('dragging');
-        });
+            // Habilitar o deshabilitar el botón según las validaciones
+            submitButton.disabled = !(isPdf && isValidSize);
 
-        document.querySelector('.file-dropzone').addEventListener('drop', (event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            fileUpload.files = event.dataTransfer.files;
-            const files = Array.from(fileUpload.files).map(file => file.name).join(', ');
-            fileIcon.classList.replace('bi-file-earmark-pdf', 'bi-file-earmark-check');
-            fileInfo.innerHTML = `<i class="bi bi-file-earmark-pdf"></i> ${files}`;
+            // Mostrar los nombres de los archivos seleccionados
+            if (isPdf && isValidSize) {
+                const files = Array.from(fileUpload.files).map(file => file.name).join(', ');
+                fileIcon.classList.replace('bi-file-earmark-pdf', 'bi-file-earmark-check');
+                fileInfo.innerHTML = `<i class="bi bi-file-earmark-check"></i> ${files}`;
+            }
         });
 
         // Manejo del envío del formulario
@@ -143,77 +146,114 @@
                 body: formData
             }).then(response => {
                 if (response.ok) {
-                    alert('Archivos correctamente indexados');
-                    window.location.href = '../Front/index.html';
+                    showModal('Éxito', 'Archivos correctamente indexados', true);
                 } else {
-                    alert('Error al indexar los archivos. Intente nuevamente.');
+                    showModal('Error', 'Error al indexar los archivos. Intente nuevamente.');
                 }
             }).catch(error => {
-                alert('Error al indexar los archivos. Intente nuevamente.');
+                showModal('Error', 'Error al indexar los archivos. Intente nuevamente.');
             });
         });
 
-        fileInput.addEventListener('change', function() {
-            // Si el archivo seleccionado es un PDF, habilita el botón
-            if (fileInput.files.length > 0) {
-                let isPdf = true;
-                for (let i = 0; i < fileInput.files.length; i++) {
-                    if (fileInput.files[i].type !== 'application/pdf') {
-                        isPdf = false;
-                        break;
-                    }
-                }
-                submitButton.disabled = !isPdf;
-            } else {
-                submitButton.disabled = true; // Si no hay archivos, deshabilita el botón
+        // Función para mostrar modal de alerta
+        function showModal(title, message, success = false) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            const modal = new bootstrap.Modal(document.getElementById('alertModal'));
+
+            modalTitle.textContent = title;
+            modalBody.textContent = message;
+            
+            if (success) {
+                // Redirige al usuario después de cerrar el modal de éxito
+                document.getElementById('modalCloseBtn').addEventListener('click', () => {
+                    window.location.href = '../Front/index.html';
+                });
             }
-        });
+
+            modal.show();
+        }
     </script>
 
+<!-- Modal de alerta -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content" style="background-color: #282c34; color: white;"> <!-- Color de fondo y texto -->
+            <div class="modal-header" style="border-bottom: 1px solid white;"> <!-- Borde blanco en el header -->
+                <h5 class="modal-title" id="modalTitle" style="color: white;"></h5> <!-- Texto blanco -->
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button> <!-- Cerrar en blanco -->
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- El mensaje se mostrará aquí -->
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid white;"> <!-- Borde blanco en el footer -->
+                <button type="button" class="btn btn-light" id="modalCloseBtn" data-bs-dismiss="modal">Cerrar</button> <!-- Botón claro -->
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php 
 if(!(isset($_FILES["archivos"]) && !empty($_FILES["archivos"]["name"][0]))){
     return;
 }
-//Quitar cuando se termine
-/*
-echo '<pre>';
-echo var_dump($_FILES["archivos"]);
-echo "</pre>";
-*/
-//--------
 
 ?>
+
 </body>
 </html>
 
+<?php 
+if(!(isset($_FILES["archivos"]) && !empty($_FILES["archivos"]["name"][0]))){
+    return;
+}
+
+?>
+
+</body>
+</html>
 
 <?php
 require '../vendor/autoload.php';
-if(!(isset($_FILES["archivos"]) && !empty($_FILES["archivos"]["name"][0]))){
-  return;
+
+if (!(isset($_FILES["archivos"]) && !empty($_FILES["archivos"]["name"][0]))) {
+    return;
 }
 
-$server = 'localhost/ProyectoFinal/back/';
+// Verificar tipo y tamaño de archivos en el servidor
+$maxFileSize = 5 * 1024 * 1024; // 5 MB
 $directorio = 'archivos/';
 $archivos = guardarArchivos($directorio);
 
-indexarArchivos($archivos, $directorio);
-echo "Archivos indexados";
+if ($archivos !== false) {
+    indexarArchivos($archivos, $directorio);
+    echo "Archivos indexados correctamente.";
+} else {
+    echo "Error al guardar los archivos.";
+}
 
-function guardarArchivos($directorio){
-  $archivos = [];
-  $cantidad = sizeof($_FILES["archivos"]["name"]);
-  for($i =0; $i<$cantidad; $i++){
-    $nombre = nombreArchivo( $_FILES["archivos"]["name"][$i]);
-    if($_FILES["archivos"]["type"][$i]!=="application/pdf"){
-      echo "No es un archivo pdf";
-      return;
+function guardarArchivos($directorio) {
+    $archivos = [];
+    $cantidad = sizeof($_FILES["archivos"]["name"]);
+    for ($i = 0; $i < $cantidad; $i++) {
+        $nombre = nombreArchivo($_FILES["archivos"]["name"][$i]);
+        
+        // Validar que el archivo sea PDF
+        if ($_FILES["archivos"]["type"][$i] !== "application/pdf") {
+            echo "Error: Solo se permiten archivos PDF.";
+            return false;
+        }
+
+        // Validar que el tamaño del archivo no exceda 5 MB
+        if ($_FILES["archivos"]["size"][$i] > 5 * 1024 * 1024) {
+            echo "Error: El archivo " . $_FILES["archivos"]["name"][$i] . " excede el límite de 5 MB.";
+            return false;
+        }
+
+        move_uploaded_file($_FILES["archivos"]["tmp_name"][$i], $directorio . $nombre);
+        $archivos[] = $nombre;
     }
-    move_uploaded_file($_FILES["archivos"]["tmp_name"][$i],$directorio.$nombre);
-    $archivos[] = $nombre;
-  }
-  return $archivos;
+    return $archivos;
 }
 
 function indexarArchivos($archivos){
@@ -242,9 +282,9 @@ function indexarArchivos($archivos){
         'language'=> lenguaje($contenido)
     ];
     indexarPDF($datos);
+  }
 }
 
-}
 include("../Back/http.php");
 include("../Back/parse.php");
 include("../Back/addresses.php");
@@ -253,32 +293,30 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 
 function indexarPDF($datos)
-    {
-        $solrUrl = 'http://localhost:8983/solr/ProyectoFinal/update/?commit=true';
-        echo "<pre>";
-        var_dump($datos);
-        echo "</pre>";
-        // Conexión y envío de datos a Solr
-        $client = new Client();
-        try {
-            $response = $client->request('POST', $solrUrl, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-                'body' => json_encode([$datos]),
-            ]);
-            $statusCode = $response->getStatusCode();
-            if ($statusCode === 200) {
-                return 'Datos indexados correctamente en Solr.';
-            } else {
-                return 'Error al indexar datos en Solr: ' . $response->getReasonPhrase();
-            }
-        } catch (RequestException $e) {
-            return 'Error al indexar datos en Solr: ' . $e->getMessage();
+{
+    $solrUrl = 'http://localhost:8983/solr/ProyectoFinal/update/?commit=true';
+    echo "<pre>";
+    var_dump($datos);
+    echo "</pre>";
+    // Conexión y envío de datos a Solr
+    $client = new Client();
+    try {
+        $response = $client->request('POST', $solrUrl, [
+            'headers' => [
+                'Content-Type' => 'application/json',
+            ],
+            'body' => json_encode([$datos]),
+        ]);
+        $statusCode = $response->getStatusCode();
+        if ($statusCode === 200) {
+            return 'Datos indexados correctamente en Solr.';
+        } else {
+            return 'Error al indexar datos en Solr: ' . $response->getReasonPhrase();
         }
+    } catch (RequestException $e) {
+        return 'Error al indexar datos en Solr: ' . $e->getMessage();
     }
-
-
+}
 
 function nombreArchivo(string $nombre){
   $actual = 0;
@@ -321,6 +359,7 @@ function palabrasClave($content, int $cantidad){
     $palabrasClave = array_keys($palabrasClave);
     return $palabrasClave;
 }
+
 function lenguaje($contenido){
     $detector = new LanguageDetector\LanguageDetector();
     $detectedLanguage = $detector->evaluate(substr($contenido, 0, 1000))->getLanguage();
@@ -333,6 +372,7 @@ function lenguaje($contenido){
     echo " Lenguaje: " . $detectedLanguage->getCode();
     return $detectedLanguage->getCode();
 }
+
 function limpiar($var) {
   return strtolower(preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+/u', '', $var)));
 }
