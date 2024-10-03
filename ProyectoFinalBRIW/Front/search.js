@@ -1,4 +1,4 @@
-const intersperse = (arr, sep) => arr.reduce((a, v) => [...a, v, sep], []).slice(0, -1);
+
 
 $(document).ready(function () {
   const suggestionsContainer = $("#suggestionsContainer");
@@ -100,9 +100,9 @@ $(document).ready(function () {
               $("#correctionContainer").empty();
             })
         );
-        intersperse(relatedWordsItems, ', ').forEach(element => {
+        intersperseItems(relatedWordsItems, ', ').forEach(element => {
           relatedWordsContainer.append(element);
-        });
+        });        
       })
       .catch(error => console.error('Error al obtener palabras relacionadas:', error));
   }
