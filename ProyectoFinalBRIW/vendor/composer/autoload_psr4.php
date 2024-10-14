@@ -16,6 +16,7 @@ return array(
     'Psr\\EventDispatcher\\' => array($vendorDir . '/psr/event-dispatcher/src'),
     'League\\Event\\' => array($vendorDir . '/league/event/src'),
     'LanguageDetector\\' => array($vendorDir . '/landrok/language-detector/src/LanguageDetector'),
+    'Kaiju\\Stopwords\\' => array($vendorDir . '/masroore/stopwords/src'),
     'JsonMachine\\' => array($vendorDir . '/halaxa/json-machine/src'),
     'ICanBoogie\\' => array($vendorDir . '/icanboogie/inflector/lib'),
     'Html2Text\\' => array($vendorDir . '/html2text/html2text/src', $vendorDir . '/html2text/html2text/test'),

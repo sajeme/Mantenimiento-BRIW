@@ -332,33 +332,43 @@ function nombreArchivo(string $nombre){
 
 use voku\helper\StopWords;
 use ICanBoogie\Inflector;
-function palabrasClave($content, int $cantidad){
-    //Limpiar texto,
-    
-    $sw = new StopWords();
-    $resultado = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $content)); //Dejar solo letras 
-    $lenguaje = lenguaje($resultado);
+function palabrasClave($content, int $cantidad) {
+    // Obtener y limpiar el contenido
+    $resultado = contenido($content); // Quitar etiquetas HTML
+    $resultado = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $resultado)); // Dejar solo letras
 
-    $listaPV = $sw->getStopWordsFromLanguage($lenguaje);
-    $resultado = preg_replace('/\b('.implode('|',$listaPV).')\b/','',$resultado);//Quitar palabras vacias
-    $tokens = explode(' ', $resultado); //Dividir en palabras
-    
-    $normalizado= [];
-    $inflector = Inflector::get($lenguaje);
-    foreach($tokens as $token){//Normalizar todas las palabras, para eliminar repetidos
-        $normal=  $inflector->singularize($token); 
-        if(!array_key_exists($normal, $normalizado)){
+    // Detectar el idioma del contenido
+    $lenguaje = lenguaje($resultado); // Función que detecta el idioma ('es' o 'en')
+
+    // Dividir el contenido en tokens (palabras)
+    $tokens = explode(' ', $resultado); 
+
+    // Array para almacenar las palabras normalizadas y sus frecuencias
+    $normalizado = [];
+    $inflector = Inflector::get($lenguaje); // Usar el inflector basado en el idioma detectado
+
+    // Normalizar las palabras (singularización) y contar la frecuencia de cada una
+    foreach($tokens as $token) {
+        $normal = $inflector->singularize($token); // Singularizar cada palabra
+
+        // Contar las palabras normalizadas
+        if (!array_key_exists($normal, $normalizado)) {
             $normalizado[$normal] = 1;
-        }else{
-            $normalizado[$normal]+= 1;
+        } else {
+            $normalizado[$normal] += 1;
         }
-    } 
-    //Obtener las mas importantes
+    }
+
+    // Ordenar las palabras por frecuencia en orden descendente
     arsort($normalizado);
+
+    // Seleccionar las palabras más importantes hasta el límite de $cantidad
     $palabrasClave = array_slice($normalizado, 0, $cantidad);
-    $palabrasClave = array_keys($palabrasClave);
-    return $palabrasClave;
+
+    // Retornar solo las palabras clave (sin contar la frecuencia)
+    return array_keys($palabrasClave);
 }
+
 
 function lenguaje($contenido){
     $detector = new LanguageDetector\LanguageDetector();

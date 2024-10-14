@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "83cc9a19dfdab90b1f6bd762de78b87e",
+    "content-hash": "7640b0d7c6bd01fa822b340cc897ed4f",
     "packages": [
         {
             "name": "guzzlehttp/guzzle",
@@ -598,6 +598,134 @@
                 "source": "https://github.com/thephpleague/event/tree/3.0.2"
             },
             "time": "2022-10-29T09:31:25+00:00"
+        },
+        {
+            "name": "masroore/stopwords",
+            "version": "1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/masroore/php-stopwords.git",
+                "reference": "200f2efa2a40d0af107da74bb4fbd004020328f4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/masroore/php-stopwords/zipball/200f2efa2a40d0af107da74bb4fbd004020328f4",
+                "reference": "200f2efa2a40d0af107da74bb4fbd004020328f4",
+                "shasum": ""
+            },
+            "require": {
+                "php": "^8.0 || ^8.1"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "^3.8",
+                "nunomaduro/collision": "^6.0",
+                "nunomaduro/larastan": "^2.0.1",
+                "orchestra/testbench": "^7.0",
+                "pestphp/pest": "^1.21",
+                "pestphp/pest-plugin-laravel": "^1.1",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan-deprecation-rules": "^1.0",
+                "phpstan/phpstan-phpunit": "^1.0",
+                "phpunit/phpunit": "^9.5"
+            },
+            "type": "library",
+            "extra": {
+                "branch-alias": {
+                    "dev-develop": "1.x-dev"
+                }
+            },
+            "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
+                "psr-4": {
+                    "Kaiju\\Stopwords\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Masroor Ehsan",
+                    "email": "masroore@gmail.com",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A PHP package to remove common stopwords from an input text, it covers most languages.",
+            "homepage": "https://github.com/masroore/php-stopwords",
+            "keywords": [
+                "analyzer",
+                "natural language processing",
+                "nlp",
+                "php",
+                "stop list",
+                "stop word",
+                "stop words",
+                "stop-word",
+                "stop-words",
+                "stopword",
+                "stopword list",
+                "stopwords",
+                "string",
+                "text",
+                "tokenize",
+                "word"
+            ],
+            "support": {
+                "issues": "https://github.com/masroore/php-stopwords/issues",
+                "source": "https://github.com/masroore/php-stopwords/tree/1.0.2"
+            },
+            "time": "2022-06-12T12:33:49+00:00"
+        },
+        {
+            "name": "pear/text_languagedetect",
+            "version": "v1.0.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/pear/Text_LanguageDetect.git",
+                "reference": "655b269959782416426cf0aa7bd47e19fed63210"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/pear/Text_LanguageDetect/zipball/655b269959782416426cf0aa7bd47e19fed63210",
+                "reference": "655b269959782416426cf0aa7bd47e19fed63210",
+                "shasum": ""
+            },
+            "require-dev": {
+                "phpunit/phpunit": "8.*|9.*"
+            },
+            "suggest": {
+                "ext-mbstring": "May require the mbstring PHP extension"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-0": {
+                    "Text": "./"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "include-path": [
+                "./"
+            ],
+            "license": [
+                "BSD-2-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Nicholas Pisarro",
+                    "email": "taak@php.net",
+                    "role": "Lead"
+                }
+            ],
+            "description": "Identify human languages from text samples",
+            "homepage": "http://pear.php.net/package/Text_LanguageDetect",
+            "support": {
+                "issues": "http://pear.php.net/bugs/search.php?cmd=display&package_name[]=Text_LanguageDetect",
+                "source": "https://github.com/pear/Text_LanguageDetect"
+            },
+            "time": "2023-02-27T20:54:21+00:00"
         },
         {
             "name": "psr/event-dispatcher",
