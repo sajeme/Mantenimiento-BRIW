@@ -330,26 +330,34 @@ function nombreArchivo(string $nombre){
   return $devolver.'.'.$archivo[1];
 }
 
-use voku\helper\StopWords;
 use ICanBoogie\Inflector;
+use Kaiju\Stopwords\Stopwords as StopwordFilter;
+use Text_LanguageDetect\LanguageDetect;
+
 function palabrasClave($content, int $cantidad) {
-    // Obtener y limpiar el contenido
-    $resultado = contenido($content); // Quitar etiquetas HTML
-    $resultado = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $resultado)); // Dejar solo letras
+    $resultado = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $content));
 
-    // Detectar el idioma del contenido
-    $lenguaje = lenguaje($resultado); // Función que detecta el idioma ('es' o 'en')
+    $lenguaje = lenguaje($resultado);
+    $stopwords = new StopwordFilter();
+    $stopwords->load($lenguaje === 'es' ? 'spanish' : 'english');
+    
+    // Eliminar stopwords
+    $resultado = $stopwords->clean($resultado);
+    // Dividir el contenido filtrado en tokens (palabras)
+    $tokens = explode(' ', $resultado);
 
-    // Dividir el contenido en tokens (palabras)
-    $tokens = explode(' ', $resultado); 
+    // Filtrar tokens no válidos (palabras de menos de 3 caracteres o no alfabéticas)
+    $tokensFiltrados = array_filter($tokens, function($token) {
+        return (strlen($token) > 2 && preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚ]+$/', $token));
+    });
 
     // Array para almacenar las palabras normalizadas y sus frecuencias
     $normalizado = [];
-    $inflector = Inflector::get($lenguaje); // Usar el inflector basado en el idioma detectado
+    $inflector = Inflector::get($lenguaje);
 
     // Normalizar las palabras (singularización) y contar la frecuencia de cada una
-    foreach($tokens as $token) {
-        $normal = $inflector->singularize($token); // Singularizar cada palabra
+    foreach ($tokensFiltrados as $token) {
+        $normal = $inflector->singularize($token);
 
         // Contar las palabras normalizadas
         if (!array_key_exists($normal, $normalizado)) {
@@ -361,27 +369,44 @@ function palabrasClave($content, int $cantidad) {
 
     // Ordenar las palabras por frecuencia en orden descendente
     arsort($normalizado);
-
-    // Seleccionar las palabras más importantes hasta el límite de $cantidad
+    
+    // Obtener primeras palabras clave
     $palabrasClave = array_slice($normalizado, 0, $cantidad);
-
-    // Retornar solo las palabras clave (sin contar la frecuencia)
+    
     return array_keys($palabrasClave);
 }
 
+function lenguaje($contenido) {
+    $contenidoLimpio = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $contenido);
 
-function lenguaje($contenido){
-    $detector = new LanguageDetector\LanguageDetector();
-    $detectedLanguage = $detector->evaluate(substr($contenido, 0, 1000))->getLanguage();
-    
-    // Si no se puede detectar el idioma, retornar un idioma por defecto
-    if ($detectedLanguage === null || ($detectedLanguage->getCode() !== 'es' && $detectedLanguage->getCode() !== 'en')) {
-        return 'es'; // Puedes cambiar esto a 'en' si prefieres un idioma diferente por defecto
+    $ld = new Text_LanguageDetect();
+    $ld->setNameMode(2); // obtener nombres idiomas
+
+    $detectedLanguage = $ld->detectSimple(substr($contenidoLimpio, 0, 3000));
+
+    // Si no se detecta un idioma válido, intentar analizar si es más inglés o español
+    if ($detectedLanguage === null || !in_array($detectedLanguage, ['spanish', 'english'])) {
+        $englishWords = ['the', 'and', 'for', 'with', 'you'];
+        $spanishWords = ['el', 'y', 'para', 'con', 'tu'];
+
+        $englishCount = count(array_intersect(explode(' ', strtolower($contenidoLimpio)), $englishWords));
+        $spanishCount = count(array_intersect(explode(' ', strtolower($contenidoLimpio)), $spanishWords));
+
+        // Determinar el idioma basado en la cantidad de palabras comunes
+        if ($englishCount > $spanishCount) {
+            return 'en';
+        } elseif ($spanishCount > $englishCount) {
+            return 'es';
+        } else {
+            return 'es';
+        }
     }
 
-    echo " Lenguaje: " . $detectedLanguage->getCode();
-    return $detectedLanguage->getCode();
+    echo "Lenguaje detectado: " . $detectedLanguage;
+    
+    return ($detectedLanguage === 'spanish') ? 'es' : 'en';
 }
+
 
 function limpiar($var) {
   return strtolower(preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúüÁÉÍÓÚÜñÑ\s]+/u', '', $var)));

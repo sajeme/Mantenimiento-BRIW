@@ -276,8 +276,8 @@ function lenguaje($contenido) {
 // Uso del WebCrawler
 // URLs de inicio
 $startUrls = [
+    'https://www.usa.gov/',
     'https://www.xataka.com.mx/',
-    'https://crawler-test.com/',
     'https://www.elpalaciodehierro.com'
 ];
 $maxDepth = 2;

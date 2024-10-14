@@ -75,7 +75,17 @@ $(document).ready(function () {
       correctionContainer.empty();
     }
   }
-
+  function intersperseItems(items, separator) {
+    const result = [];
+    for (let i = 0; i < items.length; i++) {
+      result.push(items[i]);
+      if (i < items.length - 1) {
+        result.push(separator);
+      }
+    }
+    return result;
+  }
+  
   function obtenerPalabrasRelacionadas(consulta) {
     const relatedWordsContainer = $("#relatedWords");
     if (consulta === '') {
@@ -147,6 +157,7 @@ function obtenerResultados(consulta, pagina = 1) {
       q: consulta,
       pagina: pagina
     },
+    dataType: 'json', // Asegura que espera una respuesta en JSON
     success: function (respuesta) {
       console.log("Llamando a mostrarPaginacion con", consulta, respuesta.paginaActual, respuesta.totalPaginas);
       mostrarResultados(consulta, respuesta);
@@ -154,9 +165,11 @@ function obtenerResultados(consulta, pagina = 1) {
     },
     error: function (xhr, estado, error) {
       console.error("Error al buscar en Solr desde PHP:", error);
+      console.log("Respuesta recibida:", xhr.responseText); // Verifica si la respuesta es HTML o tiene un error de PHP
       $("#searchResults").empty().append("<p>Error al buscar en Solr desde PHP</p>");
     }
   });
+  
 }
 
 
