@@ -191,7 +191,7 @@ function mostrarPaginacion(consulta, paginaActual, totalPaginas) {
 
 function mostrarResultados(consulta, respuesta) {
   const resultsContainer = document.getElementById("searchResults");
-  const facetResultsContainer = document.getElementById("facetResults");
+  //const facetResultsContainer = document.getElementById("facetResults");
 
   if (respuesta.documents.length === 0) {
     resultsContainer.replaceChildren(
@@ -220,7 +220,8 @@ function mostrarResultados(consulta, respuesta) {
         )[0]
     ))
   );
-
+  
+  /*
   if (respuesta.facetResults && respuesta.facetResults.length > 0) {
     facetResultsContainer.innerHTML = '';
     respuesta.facetResults.forEach(result => {
@@ -232,4 +233,6 @@ function mostrarResultados(consulta, respuesta) {
   } else {
     facetResultsContainer.innerHTML = '<p>No hay resultados de búsqueda facetada para mostrar.</p>';
   }
+  */
+  
 }
