@@ -164,34 +164,46 @@ class WebCrawler
     }
 }
 
-function palabrasClave($content, int $cantidad){
-    //Limpiar texto,
-    
-    $sw = new StopWords();
-    
-    $resultado = contenido($content);//Quitar tags de html
-    $resultado = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $resultado)); //Dejar solo letras 
-    $lenguaje = lenguaje($resultado);
+use Kaiju\Stopwords\Stopwords as StopwordFilter;
 
-    $listaPV = $sw->getStopWordsFromLanguage($lenguaje);
-    $resultado = preg_replace('/\b('.implode('|',$listaPV).')\b/','',$resultado);//Quitar palabras vacias
-    $tokens = explode(' ', $resultado); //Dividir en palabras
-    
-    $normalizado= [];
-    $inflector = Inflector::get($lenguaje);
-    foreach($tokens as $token){//Normalizar todas las palabras, para eliminar repetidos
-        $normal=  $inflector->singularize($token); 
-        if(!array_key_exists($normal, $normalizado)){
+function palabrasClave($content, int $cantidad) {
+    $resultado = contenido($content); // Quitar etiquetas HTML
+    $resultado = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $resultado));
+
+    // Detectar el idioma del contenido
+    $lenguaje = lenguaje($resultado);
+    $stopwords = new StopwordFilter();
+    $stopwords->load($lenguaje === 'es' ? 'spanish' : 'english'); // Cargar stopwords
+    $resultado = $stopwords->clean($resultado); // Elimina stopwords del texto
+
+    // Dividir el contenido filtrado en tokens (palabras)
+    $tokens = explode(' ', $resultado);
+
+    // Filtrar tokens no válidos
+    $tokensFiltrados = array_filter($tokens, function($token) {
+        return (strlen($token) > 2 && preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚ]+$/', $token));
+    });
+
+    // Array para almacenar las palabras normalizadas y sus frecuencias
+    $normalizado = [];
+    $inflector = Inflector::get($lenguaje); // Usar el inflector basado en el idioma detectado
+
+    // Normalizar las palabras (singularización) y contar la frecuencia de cada una
+    foreach ($tokensFiltrados as $token) {
+        $normal = $inflector->singularize($token); // Singularizar cada palabra
+
+        // Contar las palabras normalizadas
+        if (!array_key_exists($normal, $normalizado)) {
             $normalizado[$normal] = 1;
-        }else{
-            $normalizado[$normal]+= 1;
+        } else {
+            $normalizado[$normal] += 1;
         }
-    } 
-    //Obtener las mas importantes
+    }
+
+    // Ordenar las palabras por frecuencia en orden descendente
     arsort($normalizado);
     $palabrasClave = array_slice($normalizado, 0, $cantidad);
-    $palabrasClave = array_keys($palabrasClave);
-    return $palabrasClave;
+    return array_keys($palabrasClave);
 }
 
 function page_title($body) {
@@ -224,24 +236,48 @@ function contenido($content){
     return $contenido; //Quitar tags de html
 }
 
-function lenguaje($contenido){
-    $detector = new LanguageDetector\LanguageDetector();
-    $detectedLanguage = $detector->evaluate(substr($contenido, 0, 1000))->getLanguage();
-    
-    // Si no se puede detectar el idioma, retornar un idioma por defecto
-    if ($detectedLanguage === null || ($detectedLanguage->getCode() !== 'es' && $detectedLanguage->getCode() !== 'en')) {
-        return 'es'; // Puedes cambiar esto a 'en' si prefieres un idioma diferente por defecto
+use Text_LanguageDetect;
+
+function lenguaje($contenido) {
+    // Limpiar el contenido para eliminar caracteres no alfabéticos
+    $contenidoLimpio = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $contenido);
+
+    $ld = new Text_LanguageDetect();
+    $ld->setNameMode(2); // Configurar para obtener nombres completos de idiomas
+
+    // Detectar el idioma con 3k caracteres
+    $detectedLanguage = $ld->detectSimple(substr($contenidoLimpio, 0, 3000));
+
+    // Fix para paginas en ingles, con algunas palabras en español
+    if ($detectedLanguage === null || !in_array($detectedLanguage, ['spanish', 'english'])) {
+        // se analiza si hay más palabras en inglés o en español
+        $englishWords = ['the', 'and', 'for', 'with', 'you'];
+        $spanishWords = ['el', 'y', 'para', 'con', 'tu']; 
+
+        $englishCount = count(array_intersect(explode(' ', strtolower($contenidoLimpio)), $englishWords));
+        $spanishCount = count(array_intersect(explode(' ', strtolower($contenidoLimpio)), $spanishWords));
+
+        // conteo de palabras comunes que determina language
+        if ($englishCount > $spanishCount) {
+            return 'en';
+        } elseif ($spanishCount > $englishCount) {
+            return 'es';
+        } else {
+            return 'es';
+        }
     }
 
-    echo " Lenguaje: " . $detectedLanguage->getCode();
-    return $detectedLanguage->getCode();
+    echo "Lenguaje detectado: " . $detectedLanguage;
+    return ($detectedLanguage === 'spanish') ? 'es' : 'en';
 }
+
+
 
 // Uso del WebCrawler
 // URLs de inicio
 $startUrls = [
+    'https://www.usa.gov/',
     'https://www.xataka.com.mx/',
-    'https://es.wikipedia.org/wiki/Wikipedia',
     'https://www.elpalaciodehierro.com'
 ];
 $maxDepth = 2;
