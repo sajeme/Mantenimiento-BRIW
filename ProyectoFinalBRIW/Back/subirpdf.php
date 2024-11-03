@@ -271,7 +271,7 @@ function indexarArchivos($archivos){
     $contenido  = limpiar($contenido);
     echo $contenido;
 
-    $url = "http://$server$directorio$archivo";
+    $url = "http://localhost/Man/ProyectoFinalBRIW/Back/$server$directorio$archivo";
     $nombre = $archivo;
     $datos= [
         'id' => uniqid(),
