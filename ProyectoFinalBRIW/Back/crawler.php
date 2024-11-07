@@ -190,8 +190,8 @@ function palabrasClave($content, int $cantidad) {
 
     // Normalizar las palabras (singularización) y contar la frecuencia de cada una
     foreach ($tokensFiltrados as $token) {
-        $normal = $inflector->singularize($token); // Singularizar cada palabra
-
+        $normal = mb_strtolower($inflector->singularize($token)); // Singularizar cada palabra
+        //$normal =$inflector->singularize($token);
         // Contar las palabras normalizadas
         if (!array_key_exists($normal, $normalizado)) {
             $normalizado[$normal] = 1;
@@ -202,8 +202,13 @@ function palabrasClave($content, int $cantidad) {
 
     // Ordenar las palabras por frecuencia en orden descendente
     arsort($normalizado);
+    //array_unique(array_slice($normalizado, 0, $cantidad));
     $palabrasClave = array_slice($normalizado, 0, $cantidad);
-    return array_keys($palabrasClave);
+    $palabrasClaveCapitalizadas = array_map(function($palabra) {
+        return mb_convert_case($palabra, MB_CASE_TITLE, "UTF-8"); // Convierte la primera letra a mayúscula
+    }, array_keys($palabrasClave));
+
+    return $palabrasClaveCapitalizadas;
 }
 
 function page_title($body) {
@@ -276,7 +281,7 @@ function lenguaje($contenido) {
 // Uso del WebCrawler
 // URLs de inicio
 $startUrls = [
-    'https://www.usa.gov/',
+    //'https://www.usa.gov/',
     'https://www.xataka.com.mx/',
     'https://www.elpalaciodehierro.com'
 ];
