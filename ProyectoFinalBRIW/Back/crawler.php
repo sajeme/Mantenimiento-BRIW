@@ -11,6 +11,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use ICanBoogie\Inflector;
 use voku\helper\StopWords;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
 
 class WebCrawler
 {
@@ -20,7 +22,7 @@ class WebCrawler
     private $visitedUrls;
     private $urlsToCrawl;
 
-    public function __construct($startUrl, $maxDepth = 5)
+    public function __construct($startUrl, $maxDepth = 15)
     {
         $this->client = new Client();
         $this->baseDomain = parse_url($startUrl, PHP_URL_HOST);
@@ -123,12 +125,16 @@ class WebCrawler
 
         foreach ($links as $link) {
             $href = $link->getAttribute('href');
-            $absoluteUrl="";
-            if (strpos($href,'http') !== false) {
-                $absoluteUrl=$href;
-            } else {
-                $absoluteUrl = $this->resolveUrl($href, $baseUrl);
+
+            // Ignorar enlaces vacíos o con fragmentos
+            if (empty($href) || strpos($href, '#') === 0) {
+                continue;
             }
+    
+            // Resolver la URL (si es relativa, la convierte en absoluta con respecto a $baseUrl)
+            $absoluteUrl = UriResolver::resolve(new Uri($baseUrl), new Uri($href))->__toString();
+    
+            // Validar la URL para asegurarse de que pertenece al mismo dominio y no fue visitada
             if ($this->isValidUrl($absoluteUrl) && !$this->urlAlreadyQueued($absoluteUrl)) {
                 $this->urlsToCrawl[] = [$absoluteUrl, $this->getCurrentDepth($baseUrl) + 1];
             }
@@ -137,9 +143,9 @@ class WebCrawler
 
     private function resolveUrl($href, $baseUrl)
     {
-        $href = trim($href);
-        $baseUrl = trim($baseUrl);
-        return rtrim($baseUrl, '/') . '/' . ltrim($href, '/');
+        $baseUri = new Uri($baseUrl);
+        $relativeUri = new Uri($href);
+        return UriResolver::resolve($baseUri, $relativeUri)->__toString();
     }
 
     private function isValidUrl($url)
@@ -285,7 +291,7 @@ $startUrls = [
     'https://www.xataka.com.mx/',
     'https://www.elpalaciodehierro.com'
 ];
-$maxDepth = 2;
+$maxDepth = 15;
 
 foreach ($startUrls as $startUrl) {
     $crawler = new WebCrawler($startUrl, $maxDepth);
