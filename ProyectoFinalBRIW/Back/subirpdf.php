@@ -67,36 +67,56 @@
             background-color: #282c34;
             color: white;
         }
+
+        /* Ajustes responsivos */
+        @media (min-width: 600px) {
+            .file-dropzone {
+                width: 80%;
+            }
+        }
+        @media (min-width: 768px) {
+            .file-dropzone {
+                width: 70%;
+            }
+        }
+        @media (min-width: 992px) {
+            .file-dropzone {
+                width: 400px;
+            }
+        }
     </style>
 </head>
 <body>
 
     <!-- Botón de regreso -->
-    <a href="../Front/index.html" class="btn btn-custom position-absolute top-0 start-0 m-3">
-        <i class="bi bi-arrow-left"></i> Atrás
+    <a href="../Front/index.html" class="btn btn-custom position-absolute top-0 start-0 m-3" aria-label="menu-inicio">
+        <i class="bi bi-arrow-left" role="button"></i> Atrás
     </a>
 
     <!-- Título -->
-    <h2 class="text-center fw-bold" style="font-family: Arial;">Subir PDF</h2>
+    <h2 class="text-center fw-bold" role="title" aria-label="subir" style="font-family: Arial;">Subir PDF</h2>
 
     <!-- Formulario -->
     <form id="upload-form" action="subirPDF.php" method="post" enctype="multipart/form-data" class="text-center mt-4">
 
         <!-- Contenedor de arrastre de archivos -->
         <div class="file-dropzone" id="file-dropzone">
-            <div class="file-info">
-                <i class="bi bi-file-earmark-pdf"></i>
+            <div class="file-info" aria-required="true" aria-label="volver-atras" aria-requierd="true">
+                <i class="bi bi-file-earmark-pdf" role="button"></i>
                 <span>Arrastre su archivo aquí o haga clic para seleccionar</span>
             </div>
-            <input type="file" id="file-upload" name="archivos[]" accept="application/pdf" multiple>
+            <input type="file" id="file-upload" name="archivos[]" accept="application/pdf" multiple role="button">
         </div>
 
         <!-- Botón de subir archivos -->
-        <input type="submit" value="Subir archivos" name="subir" class="btn btn-custom mt-2" id="submit-btn" disabled>
+        <input type="submit" value="Subir archivos" name="subir" aria-label="PDF Subir" aria-required="true" class="btn btn-custom mt-2" id="submit-btn" disabled>
     </form>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!--Accesibilidad -->
+    <script src="https://tribunales.prevencionamigable.com.mx/public/lib/herramientaAccesibilidad.js" defer></script>
 
     <!-- Mostrar nombre de archivo seleccionado -->
     <script>
@@ -131,7 +151,7 @@
             if (isPdf && isValidSize) {
                 const files = Array.from(fileUpload.files).map(file => file.name).join(', ');
                 fileIcon.classList.replace('bi-file-earmark-pdf', 'bi-file-earmark-check');
-                fileInfo.innerHTML = `<i class="bi bi-file-earmark-check"></i> ${files}`;
+                fileInfo.innerHTML = `<i class="bi bi-file-earmark-check" role="button"></i> ${files}`;
             }
         });
 
