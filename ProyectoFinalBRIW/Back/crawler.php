@@ -55,20 +55,36 @@ class WebCrawler
     {
         $dom = new DOMDocument();
         @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
+        
+        // Eliminar elementos <script> y <style>
+        $xpath = new DOMXPath($dom);
+        foreach ($xpath->query('//script|//style') as $e) {
+            $e->parentNode->removeChild($e);
+        }
     
+        // Eliminar elementos que contienen fechas y nombres de autores
+        $elementsToRemove = $xpath->query("//*[contains(@class, 'date') or contains(@class, 'fecha') or contains(@class, 'author') or contains(@class, 'autor') or contains(@id, 'date') or contains(@id, 'fecha') or contains(@id, 'author') or contains(@id, 'autor')]");
+        foreach ($elementsToRemove as $e) {
+            $e->parentNode->removeChild($e);
+        }
+    
+        // Intentar extraer contenido del <article>
         $article = $dom->getElementsByTagName('article');
         if ($article->length > 0) {
             return $this->cleanText(mb_convert_encoding($article->item(0)->textContent, 'UTF-8', 'auto'));
         }
     
-        $divs = $dom->getElementsByTagName('div');
-        foreach ($divs as $div) {
-            $id = $div->getAttribute('id');
-            if (strpos(strtolower($id), 'content') !== false) {
-                return $this->cleanText(mb_convert_encoding($div->textContent, 'UTF-8', 'auto'));
+        // Buscar otros contenedores comunes de contenido
+        $contentNodes = $xpath->query("//*[contains(@class, 'content') or contains(@id, 'content') or contains(@class, 'post') or contains(@class, 'article')]");
+        if ($contentNodes->length > 0) {
+            $contentText = '';
+            foreach ($contentNodes as $node) {
+                $contentText .= ' ' . mb_convert_encoding($node->textContent, 'UTF-8', 'auto');
             }
+            return $this->cleanText(trim($contentText));
         }
     
+        // Extraer texto de los párrafos como último recurso
         $paragraphs = $dom->getElementsByTagName('p');
         $contentText = '';
         foreach ($paragraphs as $paragraph) {
@@ -77,32 +93,40 @@ class WebCrawler
         return $this->cleanText(trim($contentText));
     }
     
+    
     private function cleanText($text)
-    {
-        // Eliminar bloques completos de JavaScript y CSS
-        $text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $text); // Eliminar <script>
-        $text = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $text); // Eliminar <style>
+{
+    // Eliminar comentarios HTML
+    $text = preg_replace('/<!--.*?-->/s', '', $text);
+
+    // Eliminar código JavaScript y CSS residual
+    $text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $text);
+    $text = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $text);
+
+    // Eliminar formatos comunes de fechas (e.g., "2024-11-11", "11 de Noviembre de 2024")
+    $text = preg_replace('/\b\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4}\b/', '', $text); // Formatos como "11/11/2024" o "11-11-2024"
+    $text = preg_replace('/\b\d{1,2}\s+de\s+(Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre)\s+de\s+\d{4}\b/i', '', $text); // "11 de Noviembre de 2024"
+    $text = preg_replace('/\b(?:Enero|Febrero|Marzo|Abril|Mayo|Junio|Julio|Agosto|Septiembre|Octubre|Noviembre|Diciembre)\s+\d{1,2},\s+\d{4}\b/i', '', $text); // "Noviembre 11, 2024"
+
+    // Eliminar atribuciones de autor (e.g., "Por Juan Pérez", "Escrito por María López")
+    $text = preg_replace('/\b(Por|Escrito por|Autor:)\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+(\s+[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+)*\b/u', '', $text);
+
+    // Eliminar frases como "Leer más", "0 comentarios", etc.
+    $text = preg_replace('/\b(Leer más|Leer más »|0 comentarios|Sin comentarios|Facebook|Twitter|Flipboard|E-mail)\b/i', '', $text);
+
+    // Eliminar etiquetas HTML restantes
+    $text = strip_tags($text);
+
+    // Eliminar espacios y líneas en blanco adicionales
+    $text = preg_replace('/\s+/', ' ', $text);
+
+    return trim($text);
+}
+
     
-        // Eliminar comentarios HTML
-        $text = preg_replace('/<!--.*?-->/s', '', $text);
     
-        // Eliminar todas las etiquetas HTML excepto espacios y saltos de línea
-        $text = preg_replace('/<(?!br\s*\/?)[^>]+>/i', '', $text); // Mantiene solo <br>
     
-        // Eliminar referencias y términos de desarrollo web
-        $text = preg_replace('/\b(document|window|function|var|let|const|navigator|userAgent|indexOf|forEach|classList|appendChild|removeChild|getElementById|getElementsByClassName|getElementsByTagName|querySelector|querySelectorAll|innerHTML|outerHTML|setAttribute|addEventListener|removeEventListener|onload|onclick|onerror|onchange|onmouseover|style|length|script|style|link|meta|svg|canvas|audio|video|embed|object)\b/i', '', $text);
-        
-        // Eliminar palabras comunes de frameworks, bibliotecas y términos técnicos
-        $text = preg_replace('/\b(jquery|react|angular|vue|bootstrap|node|express|firebase|api|json|ajax|html|css|js)\b/i', '', $text);
-    
-        // Eliminar cualquier URL restante
-        $text = preg_replace('/\bhttps?:\/\/\S+/i', '', $text);
-    
-        // Eliminar múltiples espacios en blanco
-        $text = preg_replace('/\s+/', ' ', $text);
-    
-        return trim($text);
-    }
+
       
 
     private function indexContentToSolr($content, $url)
@@ -110,7 +134,7 @@ class WebCrawler
         $solrUrl = 'http://localhost:8983/solr/ProyectoFinal/update/?commit=true';
         $title = $this->get_title($content);
         $mainContent = $this->getMainContent($content);
-        
+        $mainContent = $this->cleanText($mainContent);
         // Asegurar que el título y el contenido están en UTF-8 antes de enviar a Solr
         $mainContent = mb_convert_encoding($mainContent, 'UTF-8', 'auto');
         $title = mb_convert_encoding($title, 'UTF-8', 'auto');
@@ -240,7 +264,7 @@ function palabrasClave($content, int $cantidad) {
     $tokens = explode(' ', $resultado);
 
     $tokensFiltrados = array_filter($tokens, function($token) {
-        return (strlen($token) > 2 && preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$/u', $token));
+        return (strlen($token) > 2 && preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚ]+$/', $token) && !preg_match('/http|www/', $token));
     });
 
     $normalizado = [];

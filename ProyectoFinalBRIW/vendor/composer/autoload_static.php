@@ -20,6 +20,10 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         array (
             'voku\\' => 5,
         ),
+        'a' => 
+        array (
+            'andreskrey\\Readability\\' => 23,
+        ),
         'W' => 
         array (
             'Webmozart\\Assert\\' => 17,
@@ -32,6 +36,7 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         ),
         'P' => 
         array (
+            'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\EventDispatcher\\' => 20,
@@ -70,6 +75,10 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         array (
             0 => __DIR__ . '/..' . '/voku/stop-words/src/voku',
         ),
+        'andreskrey\\Readability\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/andreskrey/readability.php/src',
+        ),
         'Webmozart\\Assert\\' => 
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
@@ -85,6 +94,10 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         'Solarium\\' => 
         array (
             0 => __DIR__ . '/..' . '/solarium/solarium/src',
+        ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
         ),
         'Psr\\Http\\Message\\' => 
         array (
