@@ -123,12 +123,6 @@ class WebCrawler
     return trim($text);
 }
 
-    
-    
-    
-
-      
-
     private function indexContentToSolr($content, $url)
     {
         $solrUrl = 'http://localhost:8983/solr/ProyectoFinal/update/?commit=true';
@@ -181,20 +175,28 @@ class WebCrawler
         try {
             $response = $this->client->request('GET', $url);
             $statusCode = $response->getStatusCode();
-
+    
             if ($statusCode === 200) {
-                $body = $response->getBody()->getContents();
-                echo "URL: $url";
-
-                $indexingResult = $this->indexContentToSolr($body, $url);
-                echo "Resultado de indexación en Solr: $indexingResult<br>";
-
-                $this->extractAndQueueLinks($body, $url);
+                $contentType = $response->getHeaderLine('Content-Type');
+    
+                // Verificar si el contenido es HTML
+                if (strpos($contentType, 'text/html') !== false) {
+                    $body = $response->getBody()->getContents();
+                    echo "URL: $url";
+    
+                    $indexingResult = $this->indexContentToSolr($body, $url);
+                    echo "Resultado de indexación en Solr: $indexingResult<br>";
+    
+                    $this->extractAndQueueLinks($body, $url);
+                } else {
+                    echo "URL omitida (tipo de contenido no soportado): $url - Content-Type: $contentType<br>";
+                }
             }
         } catch (RequestException $e) {
-            echo "Error al obtener la URL $url: " . $e->getMessage();
+            echo "Error al obtener la URL $url: " . $e->getMessage() . "<br>";
         }
     }
+    
 
     private function extractAndQueueLinks($content, $baseUrl)
     {
@@ -327,10 +329,10 @@ function lenguaje($contenido) {
 // Uso del WebCrawler
 $startUrls = [
 
-    'https://www.xataka.com.mx',
+    //'https://www.xataka.com.mx',
     'https://www.inegi.org.mx',
-    //'https://www.usa.gov/',
-    'https://www.elpalaciodehierro.com'
+    'https://www.usa.gov/',
+    //'https://www.elpalaciodehierro.com'
 ];
 $maxDepth = 15;
 
