@@ -204,48 +204,31 @@ function mostrarPaginacion(consulta, paginaActual, totalPaginas) {
 
 function mostrarResultados(consulta, respuesta) {
   const resultsContainer = document.getElementById("searchResults");
-  //const facetResultsContainer = document.getElementById("facetResults");
 
   if (respuesta.documents.length === 0) {
-    resultsContainer.replaceChildren(
-      $('<h2>')
-        .append('No se encontraron resultados para ')
-        .append($('<span>').addClass('bold').text(consulta))
-        .append(' :(')[0]
-    );
-    return;
+      resultsContainer.innerHTML = `<h2>No se encontraron resultados para <span class="bold">${consulta}</span> :(</h2>`;
+      return;
   }
 
-  resultsContainer.replaceChildren(
-    ...respuesta.documents.map(({ title, url, snippet }) => (
-      $('<div>')
-        .addClass('search-result')
-        .append(
-          $('<a>')
-            .addClass('result-title')
-            .attr("target", "_blank")
-            .attr("href", url)
-            .text(title)
-        ).append(
-          $('<p>')
-            .addClass('result-snippet')
-            .text(snippet)
-        )[0]
-    ))
-  );
-  
-  /*
-  if (respuesta.facetResults && respuesta.facetResults.length > 0) {
-    facetResultsContainer.innerHTML = '';
-    respuesta.facetResults.forEach(result => {
-      const facetElement = document.createElement('div');
-      facetElement.classList.add('facet-result');
-      facetElement.textContent = result;
-      facetResultsContainer.appendChild(facetElement);
-    });
-  } else {
-    facetResultsContainer.innerHTML = '<p>No hay resultados de búsqueda facetada para mostrar.</p>';
-  }
-  */
-  
+  resultsContainer.innerHTML = '';
+
+  respuesta.documents.forEach(({ title, url, snippet }) => {
+      const resultDiv = document.createElement('div');
+      resultDiv.className = 'search-result';
+
+      const link = document.createElement('a');
+      link.className = 'result-title';
+      link.href = url;
+      link.target = '_blank';
+      link.textContent = title;
+
+      const snippetP = document.createElement('p');
+      snippetP.className = 'result-snippet';
+      snippetP.textContent = snippet;  // Renderizamos el snippet directamente
+
+      resultDiv.appendChild(link);
+      resultDiv.appendChild(snippetP);
+
+      resultsContainer.appendChild(resultDiv);
+  });
 }

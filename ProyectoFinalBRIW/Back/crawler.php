@@ -4,13 +4,14 @@ include("../Back/parse.php");
 include("../Back/addresses.php");
 include("../Back/httpCodes.php");
 
-
 require '../vendor/autoload.php';
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use ICanBoogie\Inflector;
 use voku\helper\StopWords;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
 
 class WebCrawler
 {
@@ -20,7 +21,7 @@ class WebCrawler
     private $visitedUrls;
     private $urlsToCrawl;
 
-    public function __construct($startUrl, $maxDepth = 5)
+    public function __construct($startUrl, $maxDepth = 15)
     {
         $this->client = new Client();
         $this->baseDomain = parse_url($startUrl, PHP_URL_HOST);
@@ -32,50 +33,108 @@ class WebCrawler
     private function get_title($content)
     {
         $dom = new DOMDocument();
-        @$dom->loadHTML($content); // Ignora los errores de HTML mal formado
-        $titles = $dom->getElementsByTagName('title');
-        if ($titles->length > 0) {
-            return $titles->item(0)->nodeValue;
+        @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8')); // Asegura UTF-8 en carga HTML
+        
+        $tags = ['title', 'h1', 'h2'];
+        foreach ($tags as $tag) {
+            $elements = $dom->getElementsByTagName($tag);
+            if ($elements->length > 0) {
+                return mb_convert_encoding($elements->item(0)->nodeValue, 'UTF-8', 'auto');
+            }
         }
+        
+        $header = $dom->getElementById('firstHeading');
+        if ($header) {
+            return mb_convert_encoding($header->textContent, 'UTF-8', 'auto');
+        }
+        
         return null;
     }
+
+    private function getMainContent($content)
+    {
+        $dom = new DOMDocument();
+        @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
+    
+        $article = $dom->getElementsByTagName('article');
+        if ($article->length > 0) {
+            return $this->cleanText(mb_convert_encoding($article->item(0)->textContent, 'UTF-8', 'auto'));
+        }
+    
+        $divs = $dom->getElementsByTagName('div');
+        foreach ($divs as $div) {
+            $id = $div->getAttribute('id');
+            if (strpos(strtolower($id), 'content') !== false) {
+                return $this->cleanText(mb_convert_encoding($div->textContent, 'UTF-8', 'auto'));
+            }
+        }
+    
+        $paragraphs = $dom->getElementsByTagName('p');
+        $contentText = '';
+        foreach ($paragraphs as $paragraph) {
+            $contentText .= ' ' . mb_convert_encoding($paragraph->textContent, 'UTF-8', 'auto');
+        }
+        return $this->cleanText(trim($contentText));
+    }
+    
+    private function cleanText($text)
+    {
+        // Eliminar bloques completos de JavaScript y CSS
+        $text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $text); // Eliminar <script>
+        $text = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $text); // Eliminar <style>
+    
+        // Eliminar comentarios HTML
+        $text = preg_replace('/<!--.*?-->/s', '', $text);
+    
+        // Eliminar todas las etiquetas HTML excepto espacios y saltos de línea
+        $text = preg_replace('/<(?!br\s*\/?)[^>]+>/i', '', $text); // Mantiene solo <br>
+    
+        // Eliminar referencias y términos de desarrollo web
+        $text = preg_replace('/\b(document|window|function|var|let|const|navigator|userAgent|indexOf|forEach|classList|appendChild|removeChild|getElementById|getElementsByClassName|getElementsByTagName|querySelector|querySelectorAll|innerHTML|outerHTML|setAttribute|addEventListener|removeEventListener|onload|onclick|onerror|onchange|onmouseover|style|length|script|style|link|meta|svg|canvas|audio|video|embed|object)\b/i', '', $text);
+        
+        // Eliminar palabras comunes de frameworks, bibliotecas y términos técnicos
+        $text = preg_replace('/\b(jquery|react|angular|vue|bootstrap|node|express|firebase|api|json|ajax|html|css|js)\b/i', '', $text);
+    
+        // Eliminar cualquier URL restante
+        $text = preg_replace('/\bhttps?:\/\/\S+/i', '', $text);
+    
+        // Eliminar múltiples espacios en blanco
+        $text = preg_replace('/\s+/', ' ', $text);
+    
+        return trim($text);
+    }
+      
 
     private function indexContentToSolr($content, $url)
     {
         $solrUrl = 'http://localhost:8983/solr/ProyectoFinal/update/?commit=true';
-
-        // Obtener el título real del contenido
         $title = $this->get_title($content);
+        $mainContent = $this->getMainContent($content);
+        
+        // Asegurar que el título y el contenido están en UTF-8 antes de enviar a Solr
+        $mainContent = mb_convert_encoding($mainContent, 'UTF-8', 'auto');
+        $title = mb_convert_encoding($title, 'UTF-8', 'auto');
 
-        // Datos a indexar en Solr con el título real del contenido
-        $contenido = contenido($content);
         $data_to_index = [
-            'id' => uniqid(), // Generar un ID único para el documento
-            'title' => page_title($content),
-            'content' => substr($contenido,0,1000),
+            'id' => uniqid(),
+            'title' => $title,
+            'content' => substr($mainContent, 0, 1000),
             'url' => $url,
-            'keywords_s'=> palabrasClave($contenido, 20),
-            'language'=> lenguaje($contenido)
+            'keywords_s' => palabrasClave($mainContent, 20),
+            'language' => lenguaje($mainContent)
         ];
+
         echo "<pre>";
         var_dump($data_to_index);
         echo "</pre>";
-        // Conexión y envío de datos a Solr
-        $client = new Client();
-        try {
-            $response = $client->request('POST', $solrUrl, [
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                ],
-                'body' => json_encode([$data_to_index]),
-            ]);
 
-            $statusCode = $response->getStatusCode();
-            if ($statusCode === 200) {
-                return 'Datos indexados correctamente en Solr.';
-            } else {
-                return 'Error al indexar datos en Solr: ' . $response->getReasonPhrase();
-            }
+        try {
+            $response = $this->client->request('POST', $solrUrl, [
+                'headers' => ['Content-Type' => 'application/json; charset=UTF-8'],
+                'body' => json_encode([$data_to_index], JSON_UNESCAPED_UNICODE),
+            ]);
+            
+            return $response->getStatusCode() === 200 ? 'Datos indexados correctamente en Solr.' : 'Error al indexar datos en Solr: ' . $response->getReasonPhrase();
         } catch (RequestException $e) {
             return 'Error al indexar datos en Solr: ' . $e->getMessage();
         }
@@ -103,11 +162,9 @@ class WebCrawler
                 $body = $response->getBody()->getContents();
                 echo "URL: $url";
 
-                // Indexar el contenido en Solr
                 $indexingResult = $this->indexContentToSolr($body, $url);
                 echo "Resultado de indexación en Solr: $indexingResult<br>";
 
-                // Continuar con la extracción de enlaces
                 $this->extractAndQueueLinks($body, $url);
             }
         } catch (RequestException $e) {
@@ -118,17 +175,22 @@ class WebCrawler
     private function extractAndQueueLinks($content, $baseUrl)
     {
         $dom = new DOMDocument();
-        @$dom->loadHTML($content); // Ignora los errores de HTML mal formado
+        @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
         $links = $dom->getElementsByTagName('a');
 
         foreach ($links as $link) {
             $href = $link->getAttribute('href');
-            $absoluteUrl="";
-            if (strpos($href,'http') !== false) {
-                $absoluteUrl=$href;
-            } else {
-                $absoluteUrl = $this->resolveUrl($href, $baseUrl);
+
+
+            // Ignorar enlaces vacíos o con fragmentos
+            if (empty($href) || strpos($href, '#') === 0) {
+                continue;
             }
+    
+            // Resolver la URL (si es relativa, la convierte en absoluta con respecto a $baseUrl)
+            $absoluteUrl = UriResolver::resolve(new Uri($baseUrl), new Uri($href))->__toString();
+    
+            // Validar la URL para asegurarse de que pertenece al mismo dominio y no fue visitada
             if ($this->isValidUrl($absoluteUrl) && !$this->urlAlreadyQueued($absoluteUrl)) {
                 $this->urlsToCrawl[] = [$absoluteUrl, $this->getCurrentDepth($baseUrl) + 1];
             }
@@ -137,9 +199,9 @@ class WebCrawler
 
     private function resolveUrl($href, $baseUrl)
     {
-        $href = trim($href);
-        $baseUrl = trim($baseUrl);
-        return rtrim($baseUrl, '/') . '/' . ltrim($href, '/');
+        $baseUri = new Uri($baseUrl);
+        $relativeUri = new Uri($href);
+        return UriResolver::resolve($baseUri, $relativeUri)->__toString();
     }
 
     private function isValidUrl($url)
@@ -167,32 +229,29 @@ class WebCrawler
 use Kaiju\Stopwords\Stopwords as StopwordFilter;
 
 function palabrasClave($content, int $cantidad) {
-    $resultado = contenido($content); // Quitar etiquetas HTML
-    $resultado = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $resultado));
+    $resultado = contenido($content);
+    $resultado = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+/u', '', $resultado);
 
-    // Detectar el idioma del contenido
     $lenguaje = lenguaje($resultado);
     $stopwords = new StopwordFilter();
-    $stopwords->load($lenguaje === 'es' ? 'spanish' : 'english'); // Cargar stopwords
-    $resultado = $stopwords->clean($resultado); // Elimina stopwords del texto
+    $stopwords->load($lenguaje === 'es' ? 'spanish' : 'english');
+    $resultado = $stopwords->clean($resultado);
 
-    // Dividir el contenido filtrado en tokens (palabras)
     $tokens = explode(' ', $resultado);
 
-    // Filtrar tokens no válidos
     $tokensFiltrados = array_filter($tokens, function($token) {
-        return (strlen($token) > 2 && preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚ]+$/', $token));
+        return (strlen($token) > 2 && preg_match('/^[a-zA-ZáéíóúÁÉÍÓÚñÑ]+$/u', $token));
     });
 
-    // Array para almacenar las palabras normalizadas y sus frecuencias
     $normalizado = [];
-    $inflector = Inflector::get($lenguaje); // Usar el inflector basado en el idioma detectado
+    $inflector = Inflector::get($lenguaje);
 
-    // Normalizar las palabras (singularización) y contar la frecuencia de cada una
     foreach ($tokensFiltrados as $token) {
-        $normal = $inflector->singularize($token); // Singularizar cada palabra
 
+        $normal = mb_strtolower($inflector->singularize($token)); // Singularizar cada palabra
+        //$normal =$inflector->singularize($token);
         // Contar las palabras normalizadas
+
         if (!array_key_exists($normal, $normalizado)) {
             $normalizado[$normal] = 1;
         } else {
@@ -200,87 +259,56 @@ function palabrasClave($content, int $cantidad) {
         }
     }
 
-    // Ordenar las palabras por frecuencia en orden descendente
     arsort($normalizado);
+    //array_unique(array_slice($normalizado, 0, $cantidad));
     $palabrasClave = array_slice($normalizado, 0, $cantidad);
-    return array_keys($palabrasClave);
-}
+    $palabrasClaveCapitalizadas = array_map(function($palabra) {
+        return mb_convert_case($palabra, MB_CASE_TITLE, "UTF-8"); // Convierte la primera letra a mayúscula
+    }, array_keys($palabrasClave));
 
-function page_title($body) {
-    $tags = [
-        'title',
-        'h1',
-        'h2',
-        'h3',
-        'h4',
-        'p',
-        'div'
-    ];
-    $res = "";
-    $i=0;
-    for($i = 0; $i< sizeof($tags); $i++){
-        $res = preg_match("/<$tags[$i]>(.*)<\/$tags[$i]>/siU", $body, $title_matches);
-        if(!empty($res)){
-            $title = preg_replace('/\s+/', ' ', $title_matches[1]);
-            $title = trim($title);
-            return $title;
-        }
-    }
-        return null;
+    return $palabrasClaveCapitalizadas;
 }
 
 function contenido($content){
     $html = new \Html2Text\Html2Text($content);
     $contenido = $html->getText();
-    $contenido = preg_replace('/\s+/', ' ', preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $contenido));
-    return $contenido; //Quitar tags de html
+    $contenido = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+/u', '', $contenido);
+    return $contenido;
 }
 
 use Text_LanguageDetect;
 
 function lenguaje($contenido) {
-    // Limpiar el contenido para eliminar caracteres no alfabéticos
-    $contenidoLimpio = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚ\s]+/u', '', $contenido);
+    $contenidoLimpio = preg_replace('/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+/u', '', $contenido);
 
     $ld = new Text_LanguageDetect();
-    $ld->setNameMode(2); // Configurar para obtener nombres completos de idiomas
+    $ld->setNameMode(2);
 
-    // Detectar el idioma con 3k caracteres
     $detectedLanguage = $ld->detectSimple(substr($contenidoLimpio, 0, 3000));
 
-    // Fix para paginas en ingles, con algunas palabras en español
     if ($detectedLanguage === null || !in_array($detectedLanguage, ['spanish', 'english'])) {
-        // se analiza si hay más palabras en inglés o en español
         $englishWords = ['the', 'and', 'for', 'with', 'you'];
-        $spanishWords = ['el', 'y', 'para', 'con', 'tu']; 
+        $spanishWords = ['el', 'y', 'para', 'con', 'tu'];
 
         $englishCount = count(array_intersect(explode(' ', strtolower($contenidoLimpio)), $englishWords));
         $spanishCount = count(array_intersect(explode(' ', strtolower($contenidoLimpio)), $spanishWords));
 
-        // conteo de palabras comunes que determina language
-        if ($englishCount > $spanishCount) {
-            return 'en';
-        } elseif ($spanishCount > $englishCount) {
-            return 'es';
-        } else {
-            return 'es';
-        }
+        return $englishCount > $spanishCount ? 'en' : 'es';
     }
 
     echo "Lenguaje detectado: " . $detectedLanguage;
     return ($detectedLanguage === 'spanish') ? 'es' : 'en';
 }
 
-
-
 // Uso del WebCrawler
-// URLs de inicio
 $startUrls = [
-    'https://www.usa.gov/',
-    'https://www.xataka.com.mx/',
+
+    'https://www.xataka.com.mx',
+    'https://www.inegi.org.mx',
+    //'https://www.usa.gov/',
     'https://www.elpalaciodehierro.com'
 ];
-$maxDepth = 2;
+$maxDepth = 15;
 
 foreach ($startUrls as $startUrl) {
     $crawler = new WebCrawler($startUrl, $maxDepth);
