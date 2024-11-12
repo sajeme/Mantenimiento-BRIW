@@ -67,6 +67,23 @@
             background-color: #282c34;
             color: white;
         }
+
+        /* Ajustes responsivos */
+        @media (min-width: 600px) {
+            .file-dropzone {
+                width: 80%;
+            }
+        }
+        @media (min-width: 768px) {
+            .file-dropzone {
+                width: 70%;
+            }
+        }
+        @media (min-width: 992px) {
+            .file-dropzone {
+                width: 400px;
+            }
+        }
     </style>
 </head>
 <body>
