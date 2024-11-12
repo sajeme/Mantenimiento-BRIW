@@ -10,6 +10,8 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use ICanBoogie\Inflector;
 use voku\helper\StopWords;
+use GuzzleHttp\Psr7\Uri;
+use GuzzleHttp\Psr7\UriResolver;
 
 class WebCrawler
 {
@@ -19,7 +21,7 @@ class WebCrawler
     private $visitedUrls;
     private $urlsToCrawl;
 
-    public function __construct($startUrl, $maxDepth = 5)
+    public function __construct($startUrl, $maxDepth = 15)
     {
         $this->client = new Client();
         $this->baseDomain = parse_url($startUrl, PHP_URL_HOST);
@@ -178,8 +180,17 @@ class WebCrawler
 
         foreach ($links as $link) {
             $href = $link->getAttribute('href');
-            $absoluteUrl = strpos($href, 'http') !== false ? $href : $this->resolveUrl($href, $baseUrl);
-            
+
+
+            // Ignorar enlaces vacíos o con fragmentos
+            if (empty($href) || strpos($href, '#') === 0) {
+                continue;
+            }
+    
+            // Resolver la URL (si es relativa, la convierte en absoluta con respecto a $baseUrl)
+            $absoluteUrl = UriResolver::resolve(new Uri($baseUrl), new Uri($href))->__toString();
+    
+            // Validar la URL para asegurarse de que pertenece al mismo dominio y no fue visitada
             if ($this->isValidUrl($absoluteUrl) && !$this->urlAlreadyQueued($absoluteUrl)) {
                 $this->urlsToCrawl[] = [$absoluteUrl, $this->getCurrentDepth($baseUrl) + 1];
             }
@@ -188,9 +199,9 @@ class WebCrawler
 
     private function resolveUrl($href, $baseUrl)
     {
-        $href = trim($href);
-        $baseUrl = trim($baseUrl);
-        return rtrim($baseUrl, '/') . '/' . ltrim($href, '/');
+        $baseUri = new Uri($baseUrl);
+        $relativeUri = new Uri($href);
+        return UriResolver::resolve($baseUri, $relativeUri)->__toString();
     }
 
     private function isValidUrl($url)
@@ -236,7 +247,10 @@ function palabrasClave($content, int $cantidad) {
     $inflector = Inflector::get($lenguaje);
 
     foreach ($tokensFiltrados as $token) {
-        $normal = $inflector->singularize($token);
+
+        $normal = mb_strtolower($inflector->singularize($token)); // Singularizar cada palabra
+        //$normal =$inflector->singularize($token);
+        // Contar las palabras normalizadas
 
         if (!array_key_exists($normal, $normalizado)) {
             $normalizado[$normal] = 1;
@@ -246,8 +260,13 @@ function palabrasClave($content, int $cantidad) {
     }
 
     arsort($normalizado);
+    //array_unique(array_slice($normalizado, 0, $cantidad));
     $palabrasClave = array_slice($normalizado, 0, $cantidad);
-    return array_keys($palabrasClave);
+    $palabrasClaveCapitalizadas = array_map(function($palabra) {
+        return mb_convert_case($palabra, MB_CASE_TITLE, "UTF-8"); // Convierte la primera letra a mayúscula
+    }, array_keys($palabrasClave));
+
+    return $palabrasClaveCapitalizadas;
 }
 
 function contenido($content){
@@ -283,11 +302,13 @@ function lenguaje($contenido) {
 
 // Uso del WebCrawler
 $startUrls = [
+
     'https://www.xataka.com.mx',
     'https://www.inegi.org.mx',
+    //'https://www.usa.gov/',
     'https://www.elpalaciodehierro.com'
 ];
-$maxDepth = 1;
+$maxDepth = 15;
 
 foreach ($startUrls as $startUrl) {
     $crawler = new WebCrawler($startUrl, $maxDepth);
