@@ -77,16 +77,31 @@ class WebCrawler
     
     private function cleanText($text)
     {
-        $text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/isu', '', $text);
-        $text = preg_replace('/<style\b[^>]*>(.*?)<\/style>/isu', '', $text);
-        $text = preg_replace('/\b(background|media|min-width|max-width|url|banner-div|width|height|styles|px)\b[^;]*;/iu', '', $text);
-        $text = preg_replace('/\bhttps?:\/\/\S+/iu', '', $text);
-        $text = preg_replace('/\b(Tablet|Mobile|Desktop|banner-div|background-image|media|min-width|max-width|px)\b.*/iu', '', $text);
-        $text = preg_replace('/\s+/u', ' ', $text);
-        $text = strip_tags($text);
+        // Eliminar bloques completos de JavaScript y CSS
+        $text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $text); // Eliminar <script>
+        $text = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $text); // Eliminar <style>
+    
+        // Eliminar comentarios HTML
+        $text = preg_replace('/<!--.*?-->/s', '', $text);
+    
+        // Eliminar todas las etiquetas HTML excepto espacios y saltos de línea
+        $text = preg_replace('/<(?!br\s*\/?)[^>]+>/i', '', $text); // Mantiene solo <br>
+    
+        // Eliminar referencias y términos de desarrollo web
+        $text = preg_replace('/\b(document|window|function|var|let|const|navigator|userAgent|indexOf|forEach|classList|appendChild|removeChild|getElementById|getElementsByClassName|getElementsByTagName|querySelector|querySelectorAll|innerHTML|outerHTML|setAttribute|addEventListener|removeEventListener|onload|onclick|onerror|onchange|onmouseover|style|length|script|style|link|meta|svg|canvas|audio|video|embed|object)\b/i', '', $text);
         
+        // Eliminar palabras comunes de frameworks, bibliotecas y términos técnicos
+        $text = preg_replace('/\b(jquery|react|angular|vue|bootstrap|node|express|firebase|api|json|ajax|html|css|js)\b/i', '', $text);
+    
+        // Eliminar cualquier URL restante
+        $text = preg_replace('/\bhttps?:\/\/\S+/i', '', $text);
+    
+        // Eliminar múltiples espacios en blanco
+        $text = preg_replace('/\s+/', ' ', $text);
+    
         return trim($text);
-    }    
+    }
+      
 
     private function indexContentToSolr($content, $url)
     {
