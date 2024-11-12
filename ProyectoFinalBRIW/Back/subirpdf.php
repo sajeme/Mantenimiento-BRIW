@@ -225,7 +225,7 @@ if (!(isset($_FILES["archivos"]) && !empty($_FILES["archivos"]["name"][0]))) {
 
 // Verificar tipo y tamaño de archivos en el servidor
 $maxFileSize = 5 * 1024 * 1024; // 5 MB
-$directorio = 'archivos/';
+$directorio = '../Back/archivos/';
 $archivos = guardarArchivos($directorio);
 
 if ($archivos !== false) {
@@ -274,7 +274,7 @@ function indexarArchivos($archivos){
     $contenido  = limpiar($contenido);
     echo $contenido;
 
-    $url = "http://$server$directorio$archivo";
+    $url = "$server$directorio$archivo";
     $nombre = $archivo;
     $datos= [
         'id' => uniqid(),
