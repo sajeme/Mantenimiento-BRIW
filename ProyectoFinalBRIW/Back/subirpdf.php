@@ -6,6 +6,7 @@
     <title>Subir PDF</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://tribunales.prevencionamigable.com.mx/public/lib/herramientaAccesibilidad.js" defer></script> 
     <style>
         body {
             background-color: #282c34;
@@ -271,7 +272,7 @@ function indexarArchivos($archivos){
     $contenido  = limpiar($contenido);
     echo $contenido;
 
-    $url = "http://$server$directorio$archivo";
+    $url = "http://localhost/Man/ProyectoFinalBRIW/Back/$server$directorio$archivo";
     $nombre = $archivo;
     $datos= [
         'id' => uniqid(),
