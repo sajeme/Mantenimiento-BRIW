@@ -23,6 +23,7 @@
         overflow-x: hidden; /* Evita el desplazamiento horizontal */
         padding: 5px; /* Espaciado interno */
         box-sizing: border-box; /* Asegura que padding y border no aumenten el tamaño total */
+        margin: 0.5rem;
     }
 
     .faceted-results {
@@ -98,6 +99,146 @@
         text-decoration: underline;
     }
 
+    .col-md-4 {
+        white-space: nowrap;
+    }
+
+    /* Ajustes Responsivos */
+    @media (max-width: 767px) {
+        /* Vista móvil: botones en una columna, categorías debajo */
+        .App-header {
+            display: flex;
+            justify-content: center; /* Centrar el contenido */
+            align-items: center; /* Centrar verticalmente */
+            width: 100%; /* Asegura que ocupe el 100% del ancho disponible */
+        }
+        #correctionContainer, #relatedWords {
+            height: 10px;
+        }
+        .row {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 5px;
+        }
+
+        .sidebar {
+             margin-bottom: 1rem;
+        }
+
+        .col-md-2{
+            padding: 0; /* Eliminar cualquier padding extra entre columnas */
+            flex: 1 1 70%; /* Hace que cada columna ocupe el 100% de ancho en móviles */ 
+            margin-left: 0;  
+        }
+
+        .col-md-10 {
+            padding: 0; /* Eliminar cualquier padding extra entre columnas */
+            flex: 1 1 100%; /* Hace que cada columna ocupe el 100% de ancho en móviles */ 
+            justify-content: center; 
+            margin-right: 2rem;
+        }
+
+        /* Hacer que los botones ocupen todo el ancho en móviles */
+        .btn-secondary {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        /* Centrar la paginación en móviles */
+        .pagination {
+            justify-content: center;
+        }
+
+        /* Colocar las categorías debajo de los botones */
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .col-md-4 {
+            white-space: wrap;
+        }
+        /* Mover las categorías debajo de los botones */
+        .category-bar {
+            margin-top: 0.5rem;
+        }
+
+    }
+
+    @media (min-width: 768px) and (max-width: 991px) {
+        /* Vista de tablet: barra lateral y contenido principal en dos columnas */
+        .container {
+            flex-direction: row;
+        }
+
+        /* Asegura que las columnas no se desborden */
+        .col-md-2, .col-md-10 {
+            flex: 1 1 48%; /* Establece un ancho máximo proporcional en tabletas */
+        }
+
+        .App-header {
+            display: flex;
+            justify-content: center; /* Centrar el contenido */
+            align-items: center; /* Centrar verticalmente */
+            width: 100%; /* Asegura que ocupe el 100% del ancho disponible */
+        }
+    }
+
+    @media (min-width: 992px) {
+        .App-header {
+            display: flex;
+            justify-content: center; /* Centrar el contenido */
+            align-items: center; /* Centrar verticalmente */
+            width: 100%; /* Asegura que ocupe el 100% del ancho disponible */
+        }
+
+    }
+
+    /* Estilo para la barra lateral */
+    .sidebar {
+        padding: 10px; /* Espaciado interno para la barra lateral */
+    }
+
+    /* Estilo de los elementos de la lista */
+    .list-group-item {
+        text-align: left; /* Alinear texto a la izquierda */
+        transition: background-color 0.2s; /* Añadir una transición suave */
+    }
+
+    .list-group-item:hover {
+        background-color: rgba(255, 255, 255, 0.1); /* Efecto hover suave */
+    }
+
+    /* Asegurar que los elementos dentro de la barra lateral sean responsivos */
+    @media (max-width: 767px) {
+        .sidebar {
+            height: auto; /* Permitir que la barra lateral ajuste su altura */
+            margin-bottom: 1rem; /* Espacio inferior en móviles */
+        }
+
+        .list-group {
+            overflow-y: auto; /* Permitir desplazamiento si hay muchas categorías */
+            max-height: 300px; /* Altura máxima para evitar que crezca demasiado */
+        }
+    }
+
+    /* Ajustes de diseño para categorías y botones en dispositivos móviles */
+    .button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem; /* Espacio entre botones */
+    }
+
+    .category-bar {
+        display: block; /* Para asegurarse de que esté en bloque */
+        margin-top: 0.5rem; /* Espacio entre botones y categorías */
+    }
+
+
   </style>
 </head>
 
@@ -105,7 +246,7 @@
 
 
     <div class="App container mt-5 ms-n3">
-        <div class="row">
+        <div class="row flex-md-row flex-column-reverse">
             <!-- Barra lateral de categorías -->
             <div class="col-md-2" style="background-color: #30333B; border: 1px solid white; border-radius: 5px; height: 80%;">
                 <div class="list-group" style="background-color: #30333B; border-radius: 10px;">
@@ -123,24 +264,24 @@
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
-                            <p id="errorMessage" class="alert alert-danger hidden">La consulta no puede ser vacía</p>
+                            <p id="errorMessage" class="alert alert-danger hidden" role="alert">La consulta no puede ser vacía</p>
                             <div class="col-md-8">
                                 <div class="input-group">
-                                    <input type="text" id="queryInput" class="form-control custom-input" placeholder="Ingresa tu consulta" />
+                                    <input type="text" id="queryInput" class="form-control custom-input" placeholder="Ingresa tu consulta" aria-required="true" alt="buscador"/>
                                     <div class="dropdown hidden" id="suggestionsContainer"></div>
-                                    <button class="btn btn-primary" id="executeButton">
+                                    <button class="btn btn-primary" id="executeButton" aria-label="Hacer consulta" aria-required="true">
                                         <i class="bi bi-search"></i>
                                     </button>
                                 </div>
                             </div>
                             <div class="col-md-4 text-end">
-                                <button class="btn btn-secondary me-2" id="executeCrawler">Ejecutar Crawler</button>
-                                <button class="btn btn-secondary" id="executePDF">Subir PDF</button>
+                                <button class="btn btn-secondary me-2" id="executeCrawler" aria-label="Crawler" aria-required="true" alt="Crawler">Ejecutar Crawler</button>
+                                <button class="btn btn-secondary" id="executePDF" aria-label="subir PDF" aria-required="true" alt="Subir PDF">Subir PDF</button>
                             </div>
                         </div>
     
-                        <div id="correctionContainer"></div>
-                        <div id="relatedWords"></div>
+                        <div id="correctionContainer" role="contentinfo" aria-label="contenedor de correcciones"></div>
+                        <div id="relatedWords" role="contentinfo" aria-label="palabras relacionadas"></div>
                         <!-- Resultados de Búsqueda Facetada
                         <div class="faceted-results mb-4">
                             <h2 class="h4">Resultados de Búsqueda Facetada</h2>
@@ -150,16 +291,16 @@
                         </div>
                         -->
     
-                        <div class="results mb-3" id="searchResults">
+                        <div class="results mb-3" id="searchResults" role="contentinfo" aria-label="busquedas">
                             <!-- Resultados de búsqueda normales -->
                         </div>
 
-                        <div id="paginationContainer" class="pagination">
+                        <div id="paginationContainer" class="pagination"  role="contentinfo" aria-label="pagination">
                     
                         </div>
                     </div>
     
-                    <p id="errorMessage" class="alert alert-danger hidden">La consulta no puede ser vacía</p>
+                    <p id="errorMessage" class="alert alert-danger hidden" aria-label="alert">La consulta no puede ser vacía</p>
                 </header>
             </div>
         </div>
@@ -204,6 +345,7 @@
             a.style.backgroundColor = 'transparent';
             a.style.border = 'none';
             a.textContent = `${item.keyword} (${item.count})`;
+            a.ariaLabel=`${item.keyword}`;
             a.onclick = activarQuerys;
             listGroup.appendChild(a);
         });
@@ -212,6 +354,7 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://tribunales.prevencionamigable.com.mx/public/lib/herramientaAccesibilidad.js" defer></script> 
+
 </body>
 
 </html>
