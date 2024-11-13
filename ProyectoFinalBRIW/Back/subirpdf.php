@@ -293,7 +293,7 @@ function indexarArchivos($archivos){
     echo $contenido;
 
 
-    $url = "http://localhost/../$server$directorio$archivo";
+    $url = "$server$directorio$archivo";
     $nombre = $archivo;
     $datos= [
         'id' => uniqid(),
