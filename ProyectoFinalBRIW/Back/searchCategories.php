@@ -4,34 +4,52 @@ header("Content-type: application/json");
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // Definir la base URL para la consulta de términos
-    $baseurl = "http://localhost:8983/solr/ProyectoFinal/terms";
-    
-    // Parámetros de la consulta Solr (para keywords)
+    $baseurl = "http://localhost:8983/solr/ProyectoFinal/select";
+
+    // Parámetros de consulta para obtener las facetas de las 20 keywords más comunes
     $mensaje = [
-        "terms.fl" => "keywords_s",
-        "terms.sort" => "count",
-        "terms.limit" => 20,
-        "terms.mincount" => 1
+        "q" => "*:*",   // Selecciona todos los documentos
+        "rows" => 0,    // No necesitamos los documentos, solo el conteo de facetas
+        "facet" => "true",
+        "facet.field" => "keywords_s",    // Campo para obtener las keywords más comunes
+        "facet.limit" => 20,              // Limitar a los 20 términos más comunes
+        "facet.sort" => "count",          // Ordenar por la cantidad de documentos en los que aparece
+        "facet.mincount" => 1             // Solo términos que aparecen en al menos un documento
     ];
 
-    // Hacer la consulta a Solr
+    // Llamar a la API y obtener el resultado
     $resultado = apiMensaje($baseurl, $mensaje);
 
-    // Procesar los términos obtenidos de Solr
-    $terms = $resultado["terms"]["keywords_s"] ?? [];
-    $keywords_with_counts = [];
-    
-    // Los términos vienen en pares: [keyword, count]
+    // Obtener y procesar las facetas para mostrar las keywords más comunes y sus conteos en documentos
+    $terms = $resultado["facet_counts"]["facet_fields"]["keywords_s"] ?? [];
+    $keywords_with_doc_counts = [];
+
     for ($i = 0; $i < count($terms); $i += 2) {
-        $keywords_with_counts[] = [
-            "keyword" => $terms[$i],
-            "count" => $terms[$i + 1]
+        $keyword = $terms[$i];
+        
+        // Contar documentos donde la keyword aparece en title, content, o keywords_s
+        $mensaje_contador = [
+            "q" => "title:($keyword) OR content:($keyword) OR keywords_s:($keyword)",
+            "rows" => 0   // No necesitamos los documentos, solo el conteo
+        ];
+
+        $contador_resultado = apiMensaje($baseurl, $mensaje_contador);
+        $document_count = $contador_resultado['response']['numFound'];
+
+        $keywords_with_doc_counts[] = [
+            "keyword" => $keyword,
+            "count" => $document_count  // Número de documentos que contienen esta keyword
         ];
     }
 
-    // Devolver las keywords junto con sus conteos como respuesta JSON
+    // Ordenar el array por el campo 'count' en orden descendente
+    usort($keywords_with_doc_counts, function ($a, $b) {
+        return $b['count'] <=> $a['count'];
+    });
+
+    // Devolver el resultado en formato JSON
     echo json_encode([
-        "keywords" => $keywords_with_counts
+        "keywords" => $keywords_with_doc_counts
     ]);
     exit();
 }
