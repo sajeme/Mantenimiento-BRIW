@@ -305,10 +305,9 @@ $startUrls = [
 
     'https://www.xataka.com.mx',
     'https://www.inegi.org.mx',
-    //'https://www.usa.gov/',
-    'https://www.elpalaciodehierro.com'
+    'https://www.usa.gov/',
 ];
-$maxDepth = 15;
+$maxDepth = 1;
 
 foreach ($startUrls as $startUrl) {
     $crawler = new WebCrawler($startUrl, $maxDepth);
