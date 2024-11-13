@@ -104,7 +104,7 @@
         .file-dropzone {
             width: 70%;
             height: auto;
-            max-width: 400px;
+            max-width: 450px;
             padding: 1rem;
             margin: 0 auto; /* Centra horizontalmente */
         }
