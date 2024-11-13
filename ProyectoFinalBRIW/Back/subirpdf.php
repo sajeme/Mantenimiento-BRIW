@@ -8,84 +8,120 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://tribunales.prevencionamigable.com.mx/public/lib/herramientaAccesibilidad.js" defer></script> 
     <style>
-        body {
-            background-color: #282c34;
-            color: white;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-        }
-        .btn-custom {
-            color: white;
-            background-color: transparent;
-            border: 1px solid #ffffff;
-        }
-        .file-dropzone {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 150px;
-            width: 400px;
-            border: 2px dashed white;
-            border-radius: 5px;
-            cursor: pointer;
-            text-align: center;
-            margin-bottom: 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        .file-dropzone input {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .file-dropzone .file-info {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            color: white;
-        }
-        .file-dropzone .file-info i {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-        .file-dropzone .file-info span {
-            word-break: break-all;
-        }
-        .file-dropzone:hover {
-            background-color: rgba(255, 255, 255, 0.1);
-        }
-        #alertModal .modal-content {
-            min-width: 300px;
-            min-height: 150px;
-            background-color: #282c34;
-            color: white;
-        }
+    body {
+        background-color: #282c34;
+        color: white;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
 
-        /* Ajustes responsivos */
-        @media (min-width: 600px) {
-            .file-dropzone {
-                width: 80%;
-            }
+    .btn-custom {
+        color: white;
+        background-color: transparent;
+        border: 1px solid #ffffff;
+    }
+
+    /* Centrando el formulario */
+    #upload-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 100%; /* Ocupa todo el ancho disponible en pantallas pequeñas */
+    }
+
+    .file-dropzone {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 150px;
+        width: 400px;
+        border: 2px dashed white;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        margin-bottom: 20px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .file-dropzone input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    .file-dropzone .file-info {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        color: white;
+    }
+
+    .file-dropzone .file-info i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    .file-dropzone .file-info span {
+        word-break: break-all;
+    }
+
+    .file-dropzone:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    #alertModal .modal-content {
+        min-width: 300px;
+        min-height: 150px;
+        background-color: #282c34;
+        color: white;
+    }
+
+    /* Ajustes responsivos */
+    @media (max-width: 767px) {
+        .file-dropzone {
+            width: 90%; /* Ancho adaptado para pantallas pequeñas */
+            height: auto;
+            padding: 1rem;
+            margin: 0 auto; /* Centra horizontalmente */
         }
-        @media (min-width: 768px) {
-            .file-dropzone {
-                width: 70%;
-            }
+        #upload-form {
+            width: 100%;
+            padding: 0 1rem; /* Añade padding para centrar contenido */
         }
-        @media (min-width: 992px) {
-            .file-dropzone {
-                width: 400px;
-            }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+        .file-dropzone {
+            width: 70%;
+            height: auto;
+            max-width: 400px;
+            padding: 1rem;
+            margin: 0 auto; /* Centra horizontalmente */
         }
-    </style>
+        #upload-form {
+            width: 100%;
+            padding: 0 2rem; /* Ajusta el padding para centrar en tablets */
+        }
+    }
+
+    @media (min-width: 1025px) {
+        .file-dropzone {
+            width: 400px;
+            height: 150px;
+        }
+    }
+</style>
+
 </head>
 <body>
 
