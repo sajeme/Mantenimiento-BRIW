@@ -17,81 +17,81 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <title>Proyecto Final BRIW</title>
   <style>
-    #correctionContainer, #relatedWords {
-        height: 50px; /* Alto específico */
-        overflow-y: auto; /* Si el contenido es mayor, se podrá desplazar verticalmente */
-        overflow-x: hidden; /* Evita el desplazamiento horizontal */
-        padding: 5px; /* Espaciado interno */
-        box-sizing: border-box; /* Asegura que padding y border no aumenten el tamaño total */
+    #correctionContainer,
+    #relatedWords {
+        height: 50px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 5px;
+        box-sizing: border-box;
         margin: 0.5rem;
     }
 
     .faceted-results {
-        margin-bottom: 20px; /* Separación con el siguiente elemento */
+        margin-bottom: 20px;
     }
 
-    /* Estilo para el contenedor de sugerencias */
     .dropdown {
-        padding: 10px; /* Espaciado interno */
-        border-radius: 4px; /* Bordes redondeados */
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Sombra para mejor visibilidad */
-        position: absolute; /* Posicionamiento absoluto para que se pueda posicionar sobre otros elementos */
-        width: calc(100% - 1px); /* Asegura que el contenedor tenga el mismo ancho que el input menos el borde */
-        z-index: 1000; /* Asegura que el contenedor se muestre sobre otros elementos */
-        max-height: 300px; /* Altura máxima para el contenedor */
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        position: absolute;
+        width: calc(100% - 1px);
+        z-index: 1000;
+        max-height: 300px;
     }
 
     .dropdown.visible {
-        display: block; /* Mostrar cuando haya sugerencias */
+        display: block;
     }
 
     .dropdown-item {
-        background-color: #007bff; /* Color de fondo de los botones */
-        color: white; /* Color del texto */
-        border: none; /* Sin borde */
-        padding: 10px; /* Espaciado interno */
-        width: 100%; /* Asegura que el botón ocupe todo el ancho del contenedor */
-        text-align: left; /* Alinea el texto a la izquierda */
-        cursor: pointer; /* Cambia el cursor al pasar sobre el botón */
+        background-color: #007bff;
+        color: white;
+        border: none;
+        padding: 10px;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
     }
 
     .dropdown-item:hover {
-        background-color: #0056b3; /* Color de fondo al pasar el cursor sobre un botón */
+        background-color: #0056b3;
     }
 
-    /* Estilo para los resultados de búsqueda */
     .search-result {
         background-color: #30333b;
-        border-radius: 0.25rem; /* Bordes redondeados */
-        margin-bottom: 10px; /* Espaciado en la parte inferior */
-        padding: 1rem; /* Espaciado interno */
-        color: #ffffff; /* Color del texto para que sea visible sobre el fondo oscuro */
+        border-radius: 0.25rem;
+        margin-bottom: 10px;
+        padding: 1rem;
+        color: #ffffff;
     }
 
-     .text {
+    .text {
         color: #007bff;
     }
 
     .alert-custom {
-    background-color: #007bff; 
-    color: white; 
-    border-color: #007bff; 
+        background-color: #007bff;
+        color: white;
+        border-color: #007bff;
     }
+
     .pagination a {
-    color: white;
-    background-color: #007bff;
-    padding: 5px;
-    margin: 3px;
-    text-decoration: none;
-    border-radius: 4px;
+        color: white;
+        background-color: #007bff;
+        padding: 5px;
+        margin: 3px;
+        text-decoration: none;
+        border-radius: 4px;
     }
 
     .pagination strong {
-    padding: 5px;
-    margin: 3px;
-    background-color: #6c757d;
-    border-radius: 4px;
-    color: white;
+        padding: 5px;
+        margin: 3px;
+        background-color: #6c757d;
+        border-radius: 4px;
+        color: white;
     }
 
     .list-group-item:hover {
@@ -103,18 +103,41 @@
         white-space: nowrap;
     }
 
+    /* Vista de escritorio fija para .col-md-10 */
+    @media (min-width: 992px) {
+        .col-md-10 {
+            flex: 0 0 auto;
+            /* Evita que crezca o se reduzca */
+            width: 83.333333%;
+            /* Ancho fijo, el equivalente a col-md-10 */
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px),
+    (max-width: 767px) {
+        .col-md-2 {
+            max-height: 300px;
+            /* Establece una altura máxima */
+            overflow-y: auto;
+            /* Permite desplazamiento vertical */
+        }
+    }
+
+
     /* Ajustes Responsivos */
     @media (max-width: 767px) {
-        /* Vista móvil: botones en una columna, categorías debajo */
         .App-header {
             display: flex;
-            justify-content: center; /* Centrar el contenido */
-            align-items: center; /* Centrar verticalmente */
-            width: 100%; /* Asegura que ocupe el 100% del ancho disponible */
+            justify-content: center;
+            align-items: center;
+            width: 100%;
         }
-        #correctionContainer, #relatedWords {
+
+        #correctionContainer,
+        #relatedWords {
             height: 10px;
         }
+
         .row {
             display: flex;
             flex-direction: row-reverse;
@@ -125,26 +148,108 @@
         }
 
         .sidebar {
-             margin-bottom: 1rem;
+            margin-bottom: 1rem;
         }
 
-        .col-md-2{
-            padding: 0; /* Eliminar cualquier padding extra entre columnas */
-            flex: 1 1 70%; /* Hace que cada columna ocupe el 100% de ancho en móviles */ 
-            margin-left: 0;  
+        .col-md-2 {
+            padding: 0;
+            flex: 1 1 70%;
+            margin-left: 0;
         }
 
         .col-md-10 {
-            padding: 0; /* Eliminar cualquier padding extra entre columnas */
-            flex: 1 1 100%; /* Hace que cada columna ocupe el 100% de ancho en móviles */ 
-            justify-content: center; 
+            padding: 0;
+            flex: 1 1 100%;
+            justify-content: center;
             margin-right: 2rem;
+        }
+
+        .btn-secondary {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+
+        .pagination {
+            justify-content: center;
+        }
+
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
+        .col-md-4 {
+            white-space: wrap;
+        }
+
+        .category-bar {
+            margin-top: 0.5rem;
+        }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) {
+
+        /* Vista móvil: botones en una columna, categorías debajo */
+        .App-header {
+            display: flex;
+            justify-content: center;
+            /* Centrar el contenido */
+            align-items: center;
+            /* Centrar verticalmente */
+            width: 100%;
+        }
+
+        #correctionContainer,
+        #relatedWords {
+            height: auto;
+            flex: 1;
+            font-size: 17px;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            overflow: visible;
+            /* Asegura que no haya desplazamiento */
+            white-space: normal;
+            /* Permite que el texto se ajuste en varias líneas si es necesario */
+        }
+
+        .row {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 0.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 5px;
+        }
+
+        .sidebar {
+            margin-bottom: 1rem;
+        }
+
+        .col-md-2 {
+            padding: 0;
+            flex: 1 1 70%;
+            order: 2;
+            margin-right: 20%;
+            margin-left: 20%;
+        }
+
+        .col-md-10 {
+            padding: 0;
+            /* Eliminar cualquier padding extra entre columnas */
+            flex: 1 1 100%;
+            /* Hace que cada columna ocupe el 100% de ancho en móviles */
+            justify-content: center;
+            margin-right: 1rem;
+            order: 1;
+            width: 686px;
         }
 
         /* Hacer que los botones ocupen todo el ancho en móviles */
         .btn-secondary {
-            width: 100%;
+            width: 30%;
             margin-top: 0.5rem;
+            margin-right: 19%;
         }
 
         /* Centrar la paginación en móviles */
@@ -161,85 +266,15 @@
 
         .col-md-4 {
             white-space: wrap;
+            width: 100%;
         }
+
         /* Mover las categorías debajo de los botones */
         .category-bar {
             margin-top: 0.5rem;
         }
-
     }
-
-    @media (min-width: 768px) and (max-width: 991px) {
-        /* Vista de tablet: barra lateral y contenido principal en dos columnas */
-        .container {
-            flex-direction: row;
-        }
-
-        /* Asegura que las columnas no se desborden */
-        .col-md-2, .col-md-10 {
-            flex: 1 1 48%; /* Establece un ancho máximo proporcional en tabletas */
-        }
-
-        .App-header {
-            display: flex;
-            justify-content: center; /* Centrar el contenido */
-            align-items: center; /* Centrar verticalmente */
-            width: 100%; /* Asegura que ocupe el 100% del ancho disponible */
-        }
-    }
-
-    @media (min-width: 992px) {
-        .App-header {
-            display: flex;
-            justify-content: center; /* Centrar el contenido */
-            align-items: center; /* Centrar verticalmente */
-            width: 100%; /* Asegura que ocupe el 100% del ancho disponible */
-        }
-
-    }
-
-    /* Estilo para la barra lateral */
-    .sidebar {
-        padding: 10px; /* Espaciado interno para la barra lateral */
-    }
-
-    /* Estilo de los elementos de la lista */
-    .list-group-item {
-        text-align: left; /* Alinear texto a la izquierda */
-        transition: background-color 0.2s; /* Añadir una transición suave */
-    }
-
-    .list-group-item:hover {
-        background-color: rgba(255, 255, 255, 0.1); /* Efecto hover suave */
-    }
-
-    /* Asegurar que los elementos dentro de la barra lateral sean responsivos */
-    @media (max-width: 767px) {
-        .sidebar {
-            height: auto; /* Permitir que la barra lateral ajuste su altura */
-            margin-bottom: 1rem; /* Espacio inferior en móviles */
-        }
-
-        .list-group {
-            overflow-y: auto; /* Permitir desplazamiento si hay muchas categorías */
-            max-height: 300px; /* Altura máxima para evitar que crezca demasiado */
-        }
-    }
-
-    /* Ajustes de diseño para categorías y botones en dispositivos móviles */
-    .button-container {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem; /* Espacio entre botones */
-    }
-
-    .category-bar {
-        display: block; /* Para asegurarse de que esté en bloque */
-        margin-top: 0.5rem; /* Espacio entre botones y categorías */
-    }
-
-
-  </style>
+</style>
 </head>
 
 <body>
@@ -254,9 +289,9 @@
             </div>
             
             <!-- Contenido principal -->
-            <div class="col-md-10" style="width: max;">
+            <div class="col-md-10" style="width: max;margin-right: 0px;">
                 <header class="App-header">
-                    <div class="form-container custom-container">
+                    <div class="form-container custom-container" style=" padding-left: 0px;">
                         <div class="row mb-3">
                             <div id="crawlerAlert" class="alert alert-custom alert-dismissible fade hidden" role="alert">
                                 <strong>¡Crawler en ejecución!</strong> El proceso ha comenzado correctamente.
