@@ -377,9 +377,10 @@ function lenguaje($contenido) {
 
 // Uso del WebCrawler
 $startUrls = [
+    //'https://www.matematicas.uady.mx/'
     //'https://www.xbox.com/es-MX',
-    //'https://www.xataka.com.mx',
-    'https://www.inegi.org.mx',
+    'https://www.xataka.com.mx',
+    //'https://www.inegi.org.mx',
     //'https://www.usa.gov/',
     //'https://www.elpalaciodehierro.com'
 ];
