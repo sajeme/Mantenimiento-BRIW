@@ -56,57 +56,132 @@ class WebCrawler
         $dom = new DOMDocument();
         @$dom->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
     
-        $article = $dom->getElementsByTagName('article');
-        if ($article->length > 0) {
-            return $this->cleanText(mb_convert_encoding($article->item(0)->textContent, 'UTF-8', 'auto'));
+        // Crear un XPath para realizar consultas más flexibles
+        $xpath = new DOMXPath($dom);
+    
+        // Eliminar elementos que no contienen contenido relevante
+        $nodesToRemove = $xpath->query('//script | //style | //noscript | //iframe | //meta | //link | //head | //object | //embed | //applet | //form | //input | //textarea | //button');
+        foreach ($nodesToRemove as $node) {
+            $node->parentNode->removeChild($node);
         }
     
-        $divs = $dom->getElementsByTagName('div');
-        foreach ($divs as $div) {
-            $id = $div->getAttribute('id');
-            if (strpos(strtolower($id), 'content') !== false) {
-                return $this->cleanText(mb_convert_encoding($div->textContent, 'UTF-8', 'auto'));
+        // Eliminar comentarios y procesamiento de instrucciones
+        foreach ($xpath->query('//comment() | //processing-instruction()') as $node) {
+            $node->parentNode->removeChild($node);
+        }
+    
+        // Intentar extraer el contenido del artículo
+        $contentText = '';
+    
+        // Lista de selectores que pueden contener el contenido principal
+        $possibleContentSelectors = [
+            '//main', // Etiqueta <main>
+            '//article', // Etiqueta <article>
+            '//section', // Etiqueta <section>
+            '//div[contains(@class, "content") or contains(@class, "main") or contains(@id, "content") or contains(@id, "main")]',
+            '//div[contains(@class, "wrapper") or contains(@class, "container")]',
+            '//body', // Como último recurso, extraer todo el cuerpo
+        ];
+    
+        foreach ($possibleContentSelectors as $selector) {
+            $nodes = $xpath->query($selector);
+            foreach ($nodes as $node) {
+                $contentText .= ' ' . $node->textContent;
+            }
+            if (!empty(trim($contentText))) {
+                break; // Si encontramos contenido, salimos del bucle
             }
         }
     
-        $paragraphs = $dom->getElementsByTagName('p');
-        $contentText = '';
-        foreach ($paragraphs as $paragraph) {
-            $contentText .= ' ' . mb_convert_encoding($paragraph->textContent, 'UTF-8', 'auto');
+        // Si no se encuentra, concatenar todos los textos de los elementos de encabezado y párrafos
+        if (empty(trim($contentText))) {
+            $elements = $xpath->query('//h1 | //h2 | //h3 | //p | //li');
+            foreach ($elements as $element) {
+                $contentText .= ' ' . $element->textContent;
+            }
         }
-        return $this->cleanText(trim($contentText));
+        if (empty(trim($contentText))) {
+            error_log("No se pudo extraer contenido de la URL: " . $this->currentUrl);
+            return null; // O puedes devolver una cadena vacía
+        }
+    
+        // Limpiar el texto extraído
+        return $this->cleanText($contentText);
     }
+    
+    
+    
     
     private function cleanText($text)
     {
-        // Eliminar bloques completos de JavaScript y CSS
-        $text = preg_replace('/<script\b[^>]*>(.*?)<\/script>/is', '', $text); // Eliminar <script>
-        $text = preg_replace('/<style\b[^>]*>(.*?)<\/style>/is', '', $text); // Eliminar <style>
+        // Eliminar comentarios en línea (//) y bloques (/* */)
+        $text = preg_replace('#//.*#', '', $text);
+        $text = preg_replace('#/\*.*?\*/#s', '', $text);
     
-        // Eliminar comentarios HTML
-        $text = preg_replace('/<!--.*?-->/s', '', $text);
+        // Dividir el texto en líneas para procesarlo línea por línea
+        $lines = explode("\n", $text);
     
-        // Eliminar todas las etiquetas HTML excepto espacios y saltos de línea
-        $text = preg_replace('/<(?!br\s*\/?)[^>]+>/i', '', $text); // Mantiene solo <br>
+        $cleanedLines = [];
     
-        // Eliminar referencias y términos de desarrollo web
-        $text = preg_replace('/\b(document|window|function|var|let|const|navigator|userAgent|indexOf|forEach|classList|appendChild|removeChild|getElementById|getElementsByClassName|getElementsByTagName|querySelector|querySelectorAll|innerHTML|outerHTML|setAttribute|addEventListener|removeEventListener|onload|onclick|onerror|onchange|onmouseover|style|length|script|style|link|meta|svg|canvas|audio|video|embed|object)\b/i', '', $text);
-        
-        // Eliminar palabras comunes de frameworks, bibliotecas y términos técnicos
-        $text = preg_replace('/\b(jquery|react|angular|vue|bootstrap|node|express|firebase|api|json|ajax|html|css|js)\b/i', '', $text);
+        foreach ($lines as $line) {
+            // Eliminar espacios en blanco al inicio y final de la línea
+            $line = trim($line);
     
-        // Eliminar cualquier URL restante
-        $text = preg_replace('/\bhttps?:\/\/\S+/i', '', $text);
+            // Saltar líneas vacías
+            if (empty($line)) {
+                continue;
+            }
     
-        // Eliminar múltiples espacios en blanco
-        $text = preg_replace('/\s+/', ' ', $text);
+            // Si la línea es demasiado corta, la omitimos
+            if (strlen($line) < 20) {
+                continue;
+            }
     
-        return trim($text);
+            // Si la línea contiene patrones comunes de código, la omitimos
+            if (preg_match('/[{}();<>+=\/\\\[\]|$]/', $line)) {
+                continue;
+            }
+    
+            // Si la línea contiene palabras clave de JavaScript, la omitimos
+            if (preg_match('/\b(function|var|let|const|if|else|for|while|do|switch|case|break|continue|return|try|catch|throw|new|typeof|instanceof|this|class|extends|super|import|export|default|document|window|navigator|location|console|Math|Date|RegExp|Array|String|Number|Boolean|Function)\b/i', $line)) {
+                continue;
+            }
+    
+            // Si la línea tiene una alta proporción de símbolos no alfanuméricos, la omitimos
+            $nonAlnumChars = preg_match_all('/[^\p{L}\p{N}\s]/u', $line);
+            $totalChars = mb_strlen($line);
+            if ($nonAlnumChars / $totalChars > 0.3) {
+                continue;
+            }
+    
+            // Si pasa todos los filtros, agregamos la línea a las líneas limpias
+            $cleanedLines[] = $line;
+        }
+    
+        // Unir las líneas limpias en un solo texto
+        $cleanText = implode(' ', $cleanedLines);
+    
+        // Eliminar múltiples espacios
+        $cleanText = preg_replace('/\s+/', ' ', $cleanText);
+    
+        return trim($cleanText);
     }
+    
+    
+    
+    
+
       
 
     private function indexContentToSolr($content, $url)
     {
+        $title = $this->get_title($content);
+    $mainContent = $this->getMainContent($content);
+
+    if (empty($title) || empty($mainContent)) {
+        echo "No se encontró título o contenido para la URL: $url. Se omitirá la indexación.<br>";
+        return;
+    }
         $solrUrl = 'http://localhost:8983/solr/ProyectoFinal/update/?commit=true';
         $title = $this->get_title($content);
         $mainContent = $this->getMainContent($content);
@@ -302,11 +377,11 @@ function lenguaje($contenido) {
 
 // Uso del WebCrawler
 $startUrls = [
-
-    'https://www.xataka.com.mx',
-    //'https://www.inegi.org.mx',
+    //'https://www.xbox.com/es-MX',
+    //'https://www.xataka.com.mx',
+    'https://www.inegi.org.mx',
     //'https://www.usa.gov/',
-    'https://www.elpalaciodehierro.com'
+    //'https://www.elpalaciodehierro.com'
 ];
 $maxDepth = 1;
 
