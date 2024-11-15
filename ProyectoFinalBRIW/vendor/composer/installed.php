@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => '__root__',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-develop',
+        'version' => 'dev-develop',
+        'reference' => '8eb2d7ea2fe7b0411e6a156fa275935bd3e4eedd',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -11,11 +11,20 @@
     ),
     'versions' => array(
         '__root__' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-develop',
+            'version' => 'dev-develop',
+            'reference' => '8eb2d7ea2fe7b0411e6a156fa275935bd3e4eedd',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'andreskrey/readability.php' => array(
+            'pretty_version' => 'v2.1.0',
+            'version' => '2.1.0.0',
+            'reference' => '7617a912b6c527909168f5d41d263792f171c42a',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../andreskrey/readability.php',
             'aliases' => array(),
             'dev_requirement' => false,
         ),
@@ -91,6 +100,24 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'masroore/stopwords' => array(
+            'pretty_version' => '1.0.2',
+            'version' => '1.0.2.0',
+            'reference' => '200f2efa2a40d0af107da74bb4fbd004020328f4',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../masroore/stopwords',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
+        'pear/text_languagedetect' => array(
+            'pretty_version' => 'v1.0.2',
+            'version' => '1.0.2.0',
+            'reference' => '655b269959782416426cf0aa7bd47e19fed63210',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../pear/text_languagedetect',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'psr/event-dispatcher' => array(
             'pretty_version' => '1.0.0',
             'version' => '1.0.0.0',
@@ -150,6 +177,15 @@
             'provided' => array(
                 0 => '1.0',
             ),
+        ),
+        'psr/log' => array(
+            'pretty_version' => '1.1.4',
+            'version' => '1.1.4.0',
+            'reference' => 'd49695b909c3b7628b6289db5479a1c204601f11',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../psr/log',
+            'aliases' => array(),
+            'dev_requirement' => false,
         ),
         'ralouphie/getallheaders' => array(
             'pretty_version' => '3.0.3',

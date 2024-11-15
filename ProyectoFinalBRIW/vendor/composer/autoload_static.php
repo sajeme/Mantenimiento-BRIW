@@ -12,12 +12,17 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         '37a3dc5111fe8f707ab4c132ef1dbc62' => __DIR__ . '/..' . '/guzzlehttp/guzzle/src/functions_include.php',
         '603ce470d3b0980801c7a6185a3d6d53' => __DIR__ . '/..' . '/icanboogie/inflector/lib/helpers.php',
+        '695627a778ea57b3dbaa8b8f96b4a849' => __DIR__ . '/..' . '/masroore/stopwords/src/helpers.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         'v' => 
         array (
             'voku\\' => 5,
+        ),
+        'a' => 
+        array (
+            'andreskrey\\Readability\\' => 23,
         ),
         'W' => 
         array (
@@ -31,6 +36,7 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         ),
         'P' => 
         array (
+            'Psr\\Log\\' => 8,
             'Psr\\Http\\Message\\' => 17,
             'Psr\\Http\\Client\\' => 16,
             'Psr\\EventDispatcher\\' => 20,
@@ -39,6 +45,10 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         array (
             'League\\Event\\' => 13,
             'LanguageDetector\\' => 17,
+        ),
+        'K' => 
+        array (
+            'Kaiju\\Stopwords\\' => 16,
         ),
         'J' => 
         array (
@@ -65,6 +75,10 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         array (
             0 => __DIR__ . '/..' . '/voku/stop-words/src/voku',
         ),
+        'andreskrey\\Readability\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/andreskrey/readability.php/src',
+        ),
         'Webmozart\\Assert\\' => 
         array (
             0 => __DIR__ . '/..' . '/webmozart/assert/src',
@@ -81,10 +95,14 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         array (
             0 => __DIR__ . '/..' . '/solarium/solarium/src',
         ),
+        'Psr\\Log\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
         'Psr\\Http\\Message\\' => 
         array (
-            0 => __DIR__ . '/..' . '/psr/http-message/src',
-            1 => __DIR__ . '/..' . '/psr/http-factory/src',
+            0 => __DIR__ . '/..' . '/psr/http-factory/src',
+            1 => __DIR__ . '/..' . '/psr/http-message/src',
         ),
         'Psr\\Http\\Client\\' => 
         array (
@@ -101,6 +119,10 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
         'LanguageDetector\\' => 
         array (
             0 => __DIR__ . '/..' . '/landrok/language-detector/src/LanguageDetector',
+        ),
+        'Kaiju\\Stopwords\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/masroore/stopwords/src',
         ),
         'JsonMachine\\' => 
         array (
@@ -130,6 +152,13 @@ class ComposerStaticInit83cc9a19dfdab90b1f6bd762de78b87e
     );
 
     public static $prefixesPsr0 = array (
+        'T' => 
+        array (
+            'Text' => 
+            array (
+                0 => __DIR__ . '/..' . '/pear/text_languagedetect',
+            ),
+        ),
         'S' => 
         array (
             'Smalot\\PdfParser\\' => 
